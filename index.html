@@ -1,25 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WinHun</title>
     <style>
         body {
             background-color: black;
-            color: gold;
+            color: white;
             font-family: Arial, sans-serif;
             text-align: center;
-            margin-top: 100px;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            margin-top: 80px;
         }
         h1 {
-            color: white;
-        }
-        .gold {
             color: gold;
+        }
+        input {
+            padding: 10px;
+            width: 80%;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: gold;
+            color: black;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: white;
+            color: gold;
+        }
+        .games {
+            display: none;
+            margin-top: 30px;
+        }
+        .game-button {
+            display: block;
+            background-color: white;
+            color: black;
+            padding: 12px;
+            margin: 10px auto;
+            width: 70%;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .balance {
+            color: gold;
+            margin-top: 15px;
+            font-size: 18px;
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to <span class="gold">WinHun</span></h1>
-    <p>Spin the wheel, Aviator, Virtual Football, Whot and more!</p>
+    <div class="container">
+        <h1>Welcome to WinHun</h1>
+        <div id="register">
+            <p>Enter your phone number to register:</p>
+            <input type="tel" id="phone" placeholder="e.g. 08123456789">
+            <br>
+            <button onclick="register()">Register</button>
+        </div>
+        <div class="games" id="games">
+            <h2>🎮 Available Games</h2>
+            <div class="balance">Your Balance: ₦10,000 (Virtual)</div>
+            <button class="game-button">🎡 Spin the Wheel</button>
+            <button class="game-button">✈️ Aviator</button>
+            <button class="game-button">⚽ Virtual Football</button>
+            <button class="game-button">🃏 Whot</button>
+        </div>
+    </div>
+
+    <script>
+        function register() {
+            const phone = document.getElementById('phone').value;
+            if (phone.length < 10) {
+                alert('Please enter a valid phone number.');
+                return;
+            }
+            localStorage.setItem('winhunUser', phone);
+            document.getElementById('register').style.display = 'none';
+            document.getElementById('games').style.display = 'block';
+        }
+
+        // Auto-show games if already registered
+        window.onload = () => {
+            const savedUser = localStorage.getItem('winhunUser');
+            if (savedUser) {
+                document.getElementById('register').style.display = 'none';
+                document.getElementById('games').style.display = 'block';
+            }
+        };
+    </script>
 </body>
 </html>
