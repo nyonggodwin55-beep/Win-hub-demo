@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WinHub</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body { background-color: #000; color: #fff; display: flex; flex-direction: column; min-height: 100vh; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #111; color: gold; font-weight: bold; font-size: 1.2em; }
+    .balance-box { border: 1px solid gold; border-radius: 8px; padding: 5px 10px; color: gold; }
+    main { flex: 1; padding: 20px; text-align: center; }
+    .hidden { display: none; }
+    button { background: gold; color: #000; padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    nav { display: flex; justify-content: space-around; padding: 10px; background: #111; position: fixed; bottom: 0; width: 100%; }
+    nav button { flex: 1; margin: 5px; font-size: 0.9em; }
+    input { padding: 8px; margin: 10px; border-radius: 5px; border: none; width: 80%; }
+    .error { color: red; margin-top: 10px; }
+    .section { display: none; }
+    .active { display: block; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>WinHub</div>
+    <div class="balance-box">₦<span id="balance">0.00</span></div>
+  </header>
+
+  <main id="auth-page">
+    <h2>Welcome to WinHub</h2>
+    <button onclick="showSignUp()">Sign Up</button>
+    <button onclick="showLogin()">Login</button>
+
+    <div id="signup" class="hidden">
+      <h3>Create Account</h3>
+      <input id="suName" placeholder="Username"><br>
+      <input id="suPhone" placeholder="Phone"><br>
+      <input id="suPass" type="password" placeholder="Password"><br>
+      <button onclick="signUp()">Register</button>
+    </div>
+
+    <div id="login" class="hidden">
+      <h3>Login</h3>
+      <input id="liName" placeholder="Username"><br>
+      <input id="liPass" type="password" placeholder="Password"><br>
+      <button onclick="login()">Login</button>
+    </div>
+  </main>
+
+  <main id="app-page" class="hidden">
+    <div id="home" class="section active">
+      <h2>Welcome to WinHub Technologies</h2>
+      <p>We care about our customers and always strive to give the best service possible.</p>
+      <img src="https://i.imgur.com/8kmJzZK.png" alt="Happy People" style="width:80%;border-radius:15px;margin-top:15px;">
+    </div>
+
+    <div id="buy" class="section">
+      <h2>Buy Shares</h2>
+      <div id="error" class="error"></div>
+      <div><p>Agriculture — ₦2,000 → ₦10,000 <button onclick="buyShare(2000)">BUY</button></p></div>
+      <div><p>Resources — ₦10,000 → ₦50,000 <button onclick="buyShare(10000)">BUY</button></p></div>
+      <div><p>Oil & Gas — ₦100,000 → ₦1,000,000 <button onclick="buyShare(100000)">BUY</button></p></div>
+    </div>
+
+    <div id="fund" class="section">
+      <h2>Funding</h2>
+      <p>Account Name: <b>WinHub Technologies</b></p>
+      <p>Account Number: <b>8164473823</b></p>
+      <p>Bank: <b>OPay</b></p>
+      <input id="fundAmt" type="number" placeholder="Enter amount funded"><br>
+      <button onclick="fund()">Confirm Funding</button>
+    </div>
+
+    <div id="profile" class="section">
+      <h2>Profile</h2>
+      <p>Username: <span id="pName"></span></p>
+      <p>Phone: <span id="pPhone"></span></p>
+      <p>Total Funded: ₦<span id="pFunded">0</span></p>
+      <p>Shares Bought: ₦<span id="pShares">0</span></p>
+      <button>Withdraw</button>
+    </div>
+  </main>
+
+  <nav id="bottom-nav" class="hidden">
+    <button onclick="showSection('home')">Home</button>
+    <button onclick="showSection('buy')">Buy Shares</button>
+    <button onclick="showSection('fund')">Funding</button>
+    <button onclick="showSection('profile')">Profile</button>
+  </nav>
+
+  <script>
+    let users = JSON.parse(localStorage.getItem('users') || '{}');
+    let currentUser = localStorage.getItem('currentUser');
+    let balance = 0, funded = 0, shares = 0;
+
+    function showSignUp(){ document.getElementById('signup').classList.remove('hidden'); document.getElementById('login').classList.add('hidden'); }
+    function showLogin(){ document.getElementById('login').classList.remove('hidden'); document.getElementById('signup').classList.add('hidden'); }
+
+    function signUp(){
+      const u = suName.value.trim(), p = suPass.value.trim(), ph = suPhone.value.trim();
+      if(!u || !p || !ph) return alert('Please fill all fields');
+      if(users[u]) return alert('Username already exists');
+      users[u] = {pass:p, phone:ph, funded:0, shares:0};
+      localStorage.setItem('users', JSON.stringify(users));
+      alert('Account created successfully!');
+      showLogin();
+    }
+
+    function login(){
+      const u = liName.value.trim(), p = liPass.value.trim();
+      if(!u || !p) return alert('Please enter details');
+      if(!users[u] || users[u].pass !== p) return alert('Invalid credentials');
+      currentUser = u;
+      localStorage.setItem('currentUser', u);
+      balance = users[u].funded;
+      funded = users[u].funded;
+      shares = users[u].shares;
+      document.getElementById('auth-page').classList.add('hidden');
+      document.getElementById('app-page').classList.remove('hidden');
+      document.getElementById('bottom-nav').classList.remove('hidden');
+      updateDisplay();
+    }
+
+    function showSection(sec){
+      document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+      document.getElementById(sec).classList.add('active');
+    }
+
+    function updateDisplay(){
+      balance = users[currentUser].funded - users[currentUser].shares;
+      document.getElementById('balance').innerText = balance.toFixed(2);
+      pName.innerText = currentUser;
+      pPhone.innerText = users[currentUser].phone;
+      pFunded.innerText = users[currentUser].funded;
+      pShares.innerText = users[currentUser].shares;
+    }
+
+    function buyShare(amount){
+      const user = users[currentUser];
+      if(user.funded < amount){
+        document.getElementById('error').innerText = 'Please fund your account to complete this action';
+        return;
+      }
+      user.shares += amount;
+      localStorage.setItem('users', JSON.stringify(users));
+      updateDisplay();
+      alert('Share purchase successful!');
+      document.getElementById('error').innerText = '';
+    }
+
+    function fund(){
+      const amt = parseFloat(fundAmt.value);
+      if(!amt || amt <= 0) return alert('Enter a valid amount');
+      users[currentUser].funded += amt;
+      localStorage.setItem('users', JSON.stringify(users));
+      updateDisplay();
+      alert('Funding successful!');
+      fundAmt.value = '';
+    }
+  </script>
+</body>
+</html>
