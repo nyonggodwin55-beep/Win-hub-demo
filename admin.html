@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PrimeVest Admin Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0b0b0b;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: gold;
+    }
+    .login-box, .panel {
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      margin: 40px auto;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+    }
+    input {
+      display: block;
+      width: 90%;
+      margin: 10px auto;
+      padding: 10px;
+      border: 1px solid #333;
+      border-radius: 5px;
+      background: #111;
+      color: white;
+    }
+    button {
+      background: gold;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      color: black;
+      font-weight: bold;
+    }
+    .pending {
+      background: #222;
+      border: 1px solid gold;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>PrimeVest Admin</h1>
+
+  <div id="login" class="login-box">
+    <h2>Admin Login</h2>
+    <input type="text" id="adminUser" placeholder="Username">
+    <input type="password" id="adminPass" placeholder="Password">
+    <button onclick="adminLogin()">Login</button>
+    <p id="error" style="color: red;"></p>
+  </div>
+
+  <div id="panel" class="panel" style="display:none;">
+    <h2>Pending Confirmations</h2>
+    <div id="pendingList">No pending transactions.</div>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <script>
+    const adminUsername = "Admin";
+    const adminPassword = "PrimeVest";
+
+    function adminLogin() {
+      const u = document.getElementById("adminUser").value;
+      const p = document.getElementById("adminPass").value;
+
+      if (u === adminUsername && p === adminPassword) {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("panel").style.display = "block";
+        loadPending();
+      } else {
+        document.getElementById("error").innerText = "Invalid login details";
+      }
+    }
+
+    function loadPending() {
+      let pending = JSON.parse(localStorage.getItem("pendingTransactions") || "[]");
+      const list = document.getElementById("pendingList");
+      list.innerHTML = "";
+
+      if (pending.length === 0) {
+        list.innerHTML = "No pending transactions.";
+        return;
+      }
+
+      pending.forEach((p, index) => {
+        const div = document.createElement("div");
+        div.className = "pending";
+        div.innerHTML = `
+          <b>User:</b> ${p.username}<br>
+          <b>Amount:</b> ₦${p.amount}<br>
+          <b>Status:</b> ${p.status}<br>
+          <button onclick="confirmTransaction(${index})">Confirm</button>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function confirmTransaction(i) {
+      let pending = JSON.parse(localStorage.getItem("pendingTransactions") || "[]");
+      let users = JSON.parse(localStorage.getItem("users") || "{}");
+
+      const t = pending[i];
+      if (t && users[t.username]) {
+        users[t.username].balance += Number(t.amount);
+        localStorage.setItem("users", JSON.stringify(users));
+
+        pending.splice(i, 1);
+        localStorage.setItem("pendingTransactions", JSON.stringify(pending));
+
+        alert("Transaction confirmed!");
+        loadPending();
+      }
+    }
+
+    function logout() {
+      document.getElementById("panel").style.display = "none";
+      document.getElementById("login").style.display = "block";
+    }
+  </script>
+
+</body>
+</html>
