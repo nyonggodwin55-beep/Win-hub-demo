@@ -1,163 +1,363 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WinHub</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-    body { background-color: #000; color: #fff; display: flex; flex-direction: column; min-height: 100vh; }
-    header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #111; color: gold; font-weight: bold; font-size: 1.2em; }
-    .balance-box { border: 1px solid gold; border-radius: 8px; padding: 5px 10px; color: gold; }
-    main { flex: 1; padding: 20px; text-align: center; }
-    .hidden { display: none; }
-    button { background: gold; color: #000; padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    nav { display: flex; justify-content: space-around; padding: 10px; background: #111; position: fixed; bottom: 0; width: 100%; }
-    nav button { flex: 1; margin: 5px; font-size: 0.9em; }
-    input { padding: 8px; margin: 10px; border-radius: 5px; border: none; width: 80%; }
-    .error { color: red; margin-top: 10px; }
-    .section { display: none; }
-    .active { display: block; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>PrimeVest INC. (Mobile)</title>
+<meta name="description" content="PrimeVest mobile demo with Firebase backend">
+<style>
+  /* Mobile-first Anchor-inspired styles */
+  :root{
+    --bg:#ffffff; --card:#f7faf9; --text:#0f1724; --muted:#6b7280; --green:#059669; --gold:#d4af37;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+  header{display:flex;align-items:center;justify-content:space-between;padding:14px;border-bottom:1px solid #eef2f6;background:linear-gradient(180deg,#ffffff,#fbfbfb)}
+  .logo {display:flex;align-items:center;gap:10px}
+  .logo .badge{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#34d399,#059669);color:#fff;font-weight:800;font-size:18px}
+  .brand {font-weight:700}
+  .balance-box{padding:6px 10px;border-radius:12px;background:#f0fff6;border:1px solid #e6fffb;color:var(--green);font-weight:800}
+  main{padding:14px}
+  .card{background:var(--card);padding:12px;border-radius:12px;margin-bottom:12px;box-shadow:0 6px 18px rgba(12,20,24,0.03)}
+  h2{margin:0 0 8px;font-size:18px}
+  p.mute{color:var(--muted);font-size:13px;margin:6px 0}
+  button.primary{background:var(--green);color:#fff;border:0;padding:10px 12px;border-radius:10px;font-weight:700}
+  button.ghost{background:transparent;border:1px solid #e6edf0;padding:8px 10px;border-radius:10px}
+  input,select{width:100%;padding:10px;border-radius:10px;border:1px solid #e6edf0;margin-top:8px}
+  nav.bottom{position:fixed;left:8px;right:8px;bottom:10px;display:flex;gap:8px;background:transparent}
+  nav button{flex:1;padding:10px;border-radius:12px;border:1px solid #e6edf0;background:#fff}
+  .hidden{display:none}
+  .err{color:#dc2626;font-weight:700}
+  .small{font-size:13px;color:var(--muted)}
+  /* admin badge */
+  .admin-badge{background:#fef3c7;color:#92400e;padding:6px 8px;border-radius:8px;font-weight:800}
+  /* mobile responsiveness */
+  @media(min-width:720px){body{max-width:420px;margin:0 auto}}
+</style>
 </head>
 <body>
-  <header>
-    <div>WinHub</div>
-    <div class="balance-box">₦<span id="balance">0.00</span></div>
-  </header>
 
-  <main id="auth-page">
-    <h2>Welcome to WinHub</h2>
-    <button onclick="showSignUp()">Sign Up</button>
-    <button onclick="showLogin()">Login</button>
+<header>
+  <div class="logo"><div class="badge" id="logoBadge">PV</div><div class="brand">PrimeVest</div></div>
+  <div class="balance-box">₦ <span id="topBalance">0.00</span></div>
+</header>
 
-    <div id="signup" class="hidden">
-      <h3>Create Account</h3>
-      <input id="suName" placeholder="Username"><br>
-      <input id="suPhone" placeholder="Phone"><br>
-      <input id="suPass" type="password" placeholder="Password"><br>
-      <button onclick="signUp()">Register</button>
+<main id="main">
+
+  <!-- Auth card -->
+  <div id="authCard" class="card">
+    <h2>Welcome to PrimeVest</h2>
+    <p class="mute">Secure. Simple. Smart investing — demo connected to Firebase.</p>
+
+    <div id="signedOutActions">
+      <button class="primary" onclick="showSignup()">Sign up</button>
+      <button class="ghost" onclick="showLogin()">Sign in</button>
     </div>
 
-    <div id="login" class="hidden">
-      <h3>Login</h3>
-      <input id="liName" placeholder="Username"><br>
-      <input id="liPass" type="password" placeholder="Password"><br>
-      <button onclick="login()">Login</button>
-    </div>
-  </main>
-
-  <main id="app-page" class="hidden">
-    <div id="home" class="section active">
-      <h2>Welcome to WinHub Technologies</h2>
-      <p>We care about our customers and always strive to give the best service possible.</p>
-      <img src="https://i.imgur.com/8kmJzZK.png" alt="Happy People" style="width:80%;border-radius:15px;margin-top:15px;">
+    <div id="signupForm" class="hidden" style="margin-top:12px">
+      <input id="suEmail" placeholder="Email (you will use this to sign in)">
+      <input id="suPhone" placeholder="Phone number">
+      <input id="suPass" type="password" placeholder="Password (min 6)">
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="primary" onclick="doSignUp()">Create account</button>
+        <button class="ghost" onclick="hideForms()">Cancel</button>
+      </div>
+      <div id="suMsg" class="small"></div>
     </div>
 
-    <div id="buy" class="section">
+    <div id="loginForm" class="hidden" style="margin-top:12px">
+      <input id="liEmail" placeholder="Email">
+      <input id="liPass" type="password" placeholder="Password">
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="primary" onclick="doLogin()">Sign in</button>
+        <button class="ghost" onclick="hideForms()">Cancel</button>
+      </div>
+      <div id="liMsg" class="small"></div>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div class="small">Welcome back</div>
+          <div style="font-weight:800" id="userName">User</div>
+        </div>
+        <div style="text-align:right">
+          <div class="small">Current balance</div>
+          <div style="font-weight:900;font-size:18px">₦ <span id="balance">0.00</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- quick stats -->
+    <div class="card" id="quickStats">
+      <div style="display:flex;gap:8px;justify-content:space-between">
+        <div style="text-align:center">
+          <div class="small">Shares</div>
+          <div style="font-weight:800" id="statShares">0</div>
+        </div>
+        <div style="text-align:center">
+          <div class="small">Times Funded</div>
+          <div style="font-weight:800" id="statFunded">0</div>
+        </div>
+        <div style="text-align:center">
+          <div class="small">Withdrawals</div>
+          <div style="font-weight:800" id="statWithdraw">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- buy shares card preview -->
+    <div class="card">
       <h2>Buy Shares</h2>
-      <div id="error" class="error"></div>
-      <div><p>Agriculture — ₦2,000 → ₦10,000 <button onclick="buyShare(2000)">BUY</button></p></div>
-      <div><p>Resources — ₦10,000 → ₦50,000 <button onclick="buyShare(10000)">BUY</button></p></div>
-      <div><p>Oil & Gas — ₦100,000 → ₦1,000,000 <button onclick="buyShare(100000)">BUY</button></p></div>
+      <p class="small">Select a package from the Buy Shares tab below.</p>
+    </div>
+  </div>
+
+  <!-- Buy shares section -->
+  <div id="buySection" class="card hidden">
+    <h2>Buy Shares</h2>
+    <div id="buyErr" class="err hidden"></div>
+    <div id="packages"></div>
+  </div>
+
+  <!-- Funding section -->
+  <div id="fundSection" class="card hidden">
+    <h2>Fund your account</h2>
+    <p class="small">Transfer to the account below and then confirm your payment. Minimum ₦1,500.</p>
+
+    <div style="margin-top:8px">
+      <div class="small">Account Name</div>
+      <div style="font-weight:800">PrimeVest INC</div>
+      <div class="small" style="margin-top:8px">Account Number</div>
+      <div style="font-weight:800">8164473823</div>
+      <div class="small" style="margin-top:8px">Bank</div>
+      <div style="font-weight:800">OPay</div>
     </div>
 
-    <div id="fund" class="section">
-      <h2>Funding</h2>
-      <p>Account Name: <b>WinHub Technologies</b></p>
-      <p>Account Number: <b>8164473823</b></p>
-      <p>Bank: <b>OPay</b></p>
-      <input id="fundAmt" type="number" placeholder="Enter amount funded"><br>
-      <button onclick="fund()">Confirm Funding</button>
+    <div style="margin-top:12px">
+      <label class="small">Amount (₦)</label>
+      <input id="fundAmount" type="number" placeholder="e.g. 5000">
+      <label class="small">Reference (optional)</label>
+      <input id="fundRef" placeholder="Bank reference">
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="primary" onclick="createTransaction()">I have made this transaction</button>
+        <button class="ghost" onclick="clearFundForm()">Clear</button>
+      </div>
+      <div id="fundMsg" class="small" style="margin-top:8px"></div>
     </div>
+  </div>
 
-    <div id="profile" class="section">
-      <h2>Profile</h2>
-      <p>Username: <span id="pName"></span></p>
-      <p>Phone: <span id="pPhone"></span></p>
-      <p>Total Funded: ₦<span id="pFunded">0</span></p>
-      <p>Shares Bought: ₦<span id="pShares">0</span></p>
-      <button>Withdraw</button>
+  <!-- Profile -->
+  <div id="profileSection" class="card hidden">
+    <h2>Profile</h2>
+    <div id="profileInfo"></div>
+    <div style="margin-top:10px">
+      <button class="ghost" onclick="logout()">Sign out</button>
     </div>
-  </main>
+  </div>
 
-  <nav id="bottom-nav" class="hidden">
-    <button onclick="showSection('home')">Home</button>
-    <button onclick="showSection('buy')">Buy Shares</button>
-    <button onclick="showSection('fund')">Funding</button>
-    <button onclick="showSection('profile')">Profile</button>
-  </nav>
+  <div id="adminNotice" class="card hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><strong>Admin mode</strong><div class="small">You are signed in as an admin</div></div>
+      <div><a href="admin.html" style="color:var(--green);font-weight:800">Open Admin</a></div>
+    </div>
+  </div>
 
-  <script>
-    let users = JSON.parse(localStorage.getItem('users') || '{}');
-    let currentUser = localStorage.getItem('currentUser');
-    let balance = 0, funded = 0, shares = 0;
+</main>
 
-    function showSignUp(){ document.getElementById('signup').classList.remove('hidden'); document.getElementById('login').classList.add('hidden'); }
-    function showLogin(){ document.getElementById('login').classList.remove('hidden'); document.getElementById('signup').classList.add('hidden'); }
+<nav class="bottom" id="bottomNav" style="display:none">
+  <button onclick="goto('dashboard')">Home</button>
+  <button onclick="goto('buy')">Buy Shares</button>
+  <button onclick="goto('fund')">Fund</button>
+  <button onclick="goto('profile')">Profile</button>
+</nav>
 
-    function signUp(){
-      const u = suName.value.trim(), p = suPass.value.trim(), ph = suPhone.value.trim();
-      if(!u || !p || !ph) return alert('Please fill all fields');
-      if(users[u]) return alert('Username already exists');
-      users[u] = {pass:p, phone:ph, funded:0, shares:0};
-      localStorage.setItem('users', JSON.stringify(users));
-      alert('Account created successfully!');
-      showLogin();
-    }
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    function login(){
-      const u = liName.value.trim(), p = liPass.value.trim();
-      if(!u || !p) return alert('Please enter details');
-      if(!users[u] || users[u].pass !== p) return alert('Invalid credentials');
-      currentUser = u;
-      localStorage.setItem('currentUser', u);
-      balance = users[u].funded;
-      funded = users[u].funded;
-      shares = users[u].shares;
-      document.getElementById('auth-page').classList.add('hidden');
-      document.getElementById('app-page').classList.remove('hidden');
-      document.getElementById('bottom-nav').classList.remove('hidden');
-      updateDisplay();
-    }
+<script>
+/* ============================
+   INSERT YOUR FIREBASE CONFIG
+   ============================
+   Replace the object below with the config from your Firebase console.
+*/
+const firebaseConfig = /* PASTE FIREBASE CONFIG HERE */ {};
 
-    function showSection(sec){
-      document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-      document.getElementById(sec).classList.add('active');
-    }
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-    function updateDisplay(){
-      balance = users[currentUser].funded - users[currentUser].shares;
-      document.getElementById('balance').innerText = balance.toFixed(2);
-      pName.innerText = currentUser;
-      pPhone.innerText = users[currentUser].phone;
-      pFunded.innerText = users[currentUser].funded;
-      pShares.innerText = users[currentUser].shares;
-    }
+/* ---------- App state ---------- */
+let currentUser = null;
+let isAdmin = false;
 
-    function buyShare(amount){
-      const user = users[currentUser];
-      if(user.funded < amount){
-        document.getElementById('error').innerText = 'Please fund your account to complete this action';
-        return;
-      }
-      user.shares += amount;
-      localStorage.setItem('users', JSON.stringify(users));
-      updateDisplay();
-      alert('Share purchase successful!');
-      document.getElementById('error').innerText = '';
-    }
+/* ---------- UI helpers ---------- */
+function show(el){ document.getElementById(el+'Section') && (document.getElementById(el+'Section').classList.remove('hidden')); }
+function hide(el){ document.getElementById(el+'Section') && (document.getElementById(el+'Section').classList.add('hidden')); }
+function hideAll(){ document.querySelectorAll('.card, .section').forEach(n=>n.classList.add('hidden')); }
 
-    function fund(){
-      const amt = parseFloat(fundAmt.value);
-      if(!amt || amt <= 0) return alert('Enter a valid amount');
-      users[currentUser].funded += amt;
-      localStorage.setItem('users', JSON.stringify(users));
-      updateDisplay();
-      alert('Funding successful!');
-      fundAmt.value = '';
-    }
-  </script>
+/* ---------- navigation ---------- */
+function goto(tab){
+  document.getElementById('buyErr').classList.add('hidden');
+  if(tab === 'dashboard'){ document.getElementById('dashboard').classList.remove('hidden'); document.getElementById('buySection').classList.add('hidden'); document.getElementById('fundSection').classList.add('hidden'); document.getElementById('profileSection').classList.add('hidden'); }
+  if(tab === 'buy'){ document.getElementById('buySection').classList.remove('hidden'); document.getElementById('dashboard').classList.add('hidden'); document.getElementById('fundSection').classList.add('hidden'); document.getElementById('profileSection').classList.add('hidden'); }
+  if(tab === 'fund'){ document.getElementById('fundSection').classList.remove('hidden'); document.getElementById('dashboard').classList.add('hidden'); document.getElementById('buySection').classList.add('hidden'); document.getElementById('profileSection').classList.add('hidden'); }
+  if(tab === 'profile'){ document.getElementById('profileSection').classList.remove('hidden'); document.getElementById('dashboard').classList.add('hidden'); document.getElementById('buySection').classList.add('hidden'); document.getElementById('fundSection').classList.add('hidden'); }
+}
+
+/* ---------- Signup / Login ---------- */
+function showSignup(){ document.getElementById('signupForm').classList.remove('hidden'); document.getElementById('loginForm').classList.add('hidden'); }
+function showLogin(){ document.getElementById('loginForm').classList.remove('hidden'); document.getElementById('signupForm').classList.add('hidden'); }
+function hideForms(){ document.getElementById('signupForm').classList.add('hidden'); document.getElementById('loginForm').classList.add('hidden'); }
+
+async function doSignUp(){
+  const email = document.getElementById('suEmail').value.trim();
+  const phone = document.getElementById('suPhone').value.trim();
+  const pass = document.getElementById('suPass').value;
+  if(!email || !phone || !pass){ document.getElementById('suMsg').innerText='Fill all fields'; return; }
+  try{
+    const cred = await auth.createUserWithEmailAndPassword(email, pass);
+    const uid = cred.user.uid;
+    await db.collection('users').doc(uid).set({
+      email, phone, createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      balance: 0, totalFunded: 0, shares: 0, fundCount: 0, withdrawCount: 0
+    });
+    document.getElementById('suMsg').innerText = 'Account created. Please sign in.';
+    hideForms();
+  } catch(e){ document.getElementById('suMsg').innerText = e.message; }
+}
+
+async function doLogin(){
+  const email = document.getElementById('liEmail').value.trim();
+  const pass = document.getElementById('liPass').value;
+  if(!email || !pass){ document.getElementById('liMsg').innerText='Enter email and password'; return; }
+  try{
+    await auth.signInWithEmailAndPassword(email, pass);
+    document.getElementById('liMsg').innerText = '';
+  } catch(e){ document.getElementById('liMsg').innerText = e.message; }
+}
+
+/* ---------- Auth listener ---------- */
+auth.onAuthStateChanged(async user=>{
+  currentUser = user;
+  if(!user){
+    document.getElementById('authCard').classList.remove('hidden');
+    document.getElementById('dashboard').classList.add('hidden');
+    document.getElementById('bottomNav').style.display = 'none';
+    return;
+  }
+  // check admin
+  const adminDoc = await db.collection('admins').doc(user.uid).get();
+  isAdmin = adminDoc.exists;
+  if(isAdmin){
+    document.getElementById('adminNotice').classList.remove('hidden');
+  } else {
+    document.getElementById('adminNotice').classList.add('hidden');
+  }
+  // load user profile
+  const udoc = await db.collection('users').doc(user.uid).get();
+  const data = udoc.data();
+  document.getElementById('userName').innerText = data.email || user.email;
+  document.getElementById('topBalance').innerText = (data.balance || 0).toFixed(2);
+  document.getElementById('balance').innerText = (data.balance || 0).toFixed(2);
+  document.getElementById('statShares').innerText = (data.shares || 0);
+  document.getElementById('statFunded').innerText = (data.fundCount || 0);
+  document.getElementById('statWithdraw').innerText = (data.withdrawCount || 0);
+  document.getElementById('authCard').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  document.getElementById('bottomNav').style.display = 'flex';
+  renderPackages();
+});
+
+/* ---------- Packages ---------- */
+const PACKAGES = [
+  {cost:2000,payout:10000,label:'Agriculture'},
+  {cost:10000,payout:50000,label:'Resources'},
+  {cost:100000,payout:1000000,label:'Real Estate'}
+];
+
+function renderPackages(){
+  const container = document.getElementById('packages');
+  container.innerHTML = '';
+  PACKAGES.forEach((p, i)=>{
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:14px;font-weight:800">Get ₦${p.payout.toLocaleString()}</div>
+        <div class="small">Pay ₦${p.cost.toLocaleString()} • ${p.label}</div>
+      </div>
+      <div>
+        <button class="primary" onclick="buyConfirm(${i})">BUY</button>
+      </div>
+    </div>`;
+    container.appendChild(div);
+  });
+}
+
+/* ---------- Buy flow ---------- */
+async function buyConfirm(index){
+  if(!currentUser){ alert('Please sign in'); return; }
+  const pack = PACKAGES[index];
+  const udocRef = db.collection('users').doc(currentUser.uid);
+  const udoc = await udocRef.get();
+  const data = udoc.data();
+  if(!data || (data.balance || 0) < pack.cost){
+    // redirect to funding with message
+    goto('fund'); document.getElementById('fundMsg').innerText = 'Please fund your account to complete this action.'; return;
+  }
+  // Deduct and record share purchase
+  await udocRef.update({
+    balance: firebase.firestore.FieldValue.increment(-pack.cost),
+    shares: firebase.firestore.FieldValue.increment(pack.cost)
+  });
+  await db.collection('shares').add({
+    userId: currentUser.uid, package: pack.label, cost: pack.cost, payout: pack.payout, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  alert('Purchase successful. Check profile for updates.');
+  // refresh profile display
+  const newUser = await udocRef.get();
+  const nd = newUser.data();
+  document.getElementById('topBalance').innerText = (nd.balance || 0).toFixed(2);
+  document.getElementById('balance').innerText = (nd.balance || 0).toFixed(2);
+  document.getElementById('statShares').innerText = (nd.shares || 0);
+}
+
+/* ---------- Funding flow ---------- */
+async function createTransaction(){
+  if(!currentUser){ alert('Please sign in'); return; }
+  const amt = Number(document.getElementById('fundAmount').value || 0);
+  const ref = document.getElementById('fundRef').value.trim();
+  if(!amt || amt < 1500){ document.getElementById('fundMsg').innerText = 'Minimum funding amount is ₦1,500.'; return; }
+  // create pending transaction
+  const tx = {
+    userId: currentUser.uid,
+    amount: Math.round(amt),
+    reference: ref || null,
+    status: 'pending',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  await db.collection('transactions').add(tx);
+  document.getElementById('fundMsg').innerText = 'Transaction recorded and is pending confirmation.';
+  // clear form
+  document.getElementById('fundAmount').value = '';
+  document.getElementById('fundRef').value = '';
+}
+
+/* ---------- helper: clear fund form ---------- */
+function clearFundForm(){ document.getElementById('fundAmount').value=''; document.getElementById('fundRef').value=''; document.getElementById('fundMsg').innerText=''; }
+
+/* ---------- logout ---------- */
+function logout(){
+  auth.signOut();
+  location.reload();
+}
+</script>
 </body>
-</html>
+  </html>
