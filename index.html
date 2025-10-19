@@ -3,19 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>PrimeVest INC. (Mobile)</title>
-<meta name="description" content="PrimeVest mobile demo with Firebase backend">
+<title>PrimeVest (mobile)</title>
 <style>
-  /* Mobile-first Anchor-inspired styles */
-  :root{
-    --bg:#ffffff; --card:#f7faf9; --text:#0f1724; --muted:#6b7280; --green:#059669; --gold:#d4af37;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
-  header{display:flex;align-items:center;justify-content:space-between;padding:14px;border-bottom:1px solid #eef2f6;background:linear-gradient(180deg,#ffffff,#fbfbfb)}
-  .logo {display:flex;align-items:center;gap:10px}
-  .logo .badge{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#34d399,#059669);color:#fff;font-weight:800;font-size:18px}
-  .brand {font-weight:700}
+  /* Mobile-first simple style (kept minimal to avoid touching layout too much) */
+  :root{--bg:#ffffff;--card:#f7f8fa;--text:#0b1220;--muted:#6b7280;--green:#059669;--gold:#d4af37}
+  *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Arial;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+  header{display:flex;align-items:center;justify-content:space-between;padding:14px;border-bottom:1px solid #edf2f7}
+  .logo{display:flex;align-items:center;gap:10px}
+  .badge{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#34d399,#059669);color:#fff;font-weight:800}
   .balance-box{padding:6px 10px;border-radius:12px;background:#f0fff6;border:1px solid #e6fffb;color:var(--green);font-weight:800}
   main{padding:14px}
   .card{background:var(--card);padding:12px;border-radius:12px;margin-bottom:12px;box-shadow:0 6px 18px rgba(12,20,24,0.03)}
@@ -23,15 +18,12 @@
   p.mute{color:var(--muted);font-size:13px;margin:6px 0}
   button.primary{background:var(--green);color:#fff;border:0;padding:10px 12px;border-radius:10px;font-weight:700}
   button.ghost{background:transparent;border:1px solid #e6edf0;padding:8px 10px;border-radius:10px}
-  input,select{width:100%;padding:10px;border-radius:10px;border:1px solid #e6edf0;margin-top:8px}
+  input{width:100%;padding:10px;border-radius:10px;border:1px solid #e6edf0;margin-top:8px}
   nav.bottom{position:fixed;left:8px;right:8px;bottom:10px;display:flex;gap:8px;background:transparent}
   nav button{flex:1;padding:10px;border-radius:12px;border:1px solid #e6edf0;background:#fff}
   .hidden{display:none}
   .err{color:#dc2626;font-weight:700}
   .small{font-size:13px;color:var(--muted)}
-  /* admin badge */
-  .admin-badge{background:#fef3c7;color:#92400e;padding:6px 8px;border-radius:8px;font-weight:800}
-  /* mobile responsiveness */
   @media(min-width:720px){body{max-width:420px;margin:0 auto}}
 </style>
 </head>
@@ -39,96 +31,76 @@
 
 <header>
   <div class="logo"><div class="badge" id="logoBadge">PV</div><div class="brand">PrimeVest</div></div>
-  <div class="balance-box">₦ <span id="topBalance">0.00</span></div>
+  <!-- balance box: hidden until login -->
+  <div id="topBalanceBox" class="balance-box hidden">₦ <span id="topBalance">0.00</span></div>
 </header>
 
 <main id="main">
 
-  <!-- Auth card -->
+  <!-- AUTH CARD -->
   <div id="authCard" class="card">
     <h2>Welcome to PrimeVest</h2>
-    <p class="mute">Secure. Simple. Smart investing — demo connected to Firebase.</p>
+    <p class="mute">Secure. Simple. Smart investing — demo, local-only.</p>
 
     <div id="signedOutActions">
       <button class="primary" onclick="showSignup()">Sign up</button>
       <button class="ghost" onclick="showLogin()">Sign in</button>
     </div>
 
+    <!-- SIGNUP -->
     <div id="signupForm" class="hidden" style="margin-top:12px">
-      <input id="suEmail" placeholder="Email (you will use this to sign in)">
+      <input id="suUser" placeholder="Create username">
       <input id="suPhone" placeholder="Phone number">
-      <input id="suPass" type="password" placeholder="Password (min 6)">
+      <input id="suPass" type="password" placeholder="Password">
       <div style="display:flex;gap:8px;margin-top:10px">
-        <button class="primary" onclick="doSignUp()">Create account</button>
-        <button class="ghost" onclick="hideForms()">Cancel</button>
+        <button class="primary" onclick="doSignup()">Create account</button>
+        <button class="ghost" onclick="hideAuthForms()">Cancel</button>
       </div>
       <div id="suMsg" class="small"></div>
     </div>
 
+    <!-- LOGIN -->
     <div id="loginForm" class="hidden" style="margin-top:12px">
-      <input id="liEmail" placeholder="Email">
+      <input id="liUser" placeholder="Username">
       <input id="liPass" type="password" placeholder="Password">
       <div style="display:flex;gap:8px;margin-top:10px">
         <button class="primary" onclick="doLogin()">Sign in</button>
-        <button class="ghost" onclick="hideForms()">Cancel</button>
+        <button class="ghost" onclick="hideAuthForms()">Cancel</button>
       </div>
       <div id="liMsg" class="small"></div>
     </div>
   </div>
 
-  <!-- Dashboard -->
-  <div id="dashboard" class="hidden">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div class="small">Welcome back</div>
-          <div style="font-weight:800" id="userName">User</div>
-        </div>
-        <div style="text-align:right">
-          <div class="small">Current balance</div>
-          <div style="font-weight:900;font-size:18px">₦ <span id="balance">0.00</span></div>
-        </div>
+  <!-- HOME (visible after login) -->
+  <div id="homeCard" class="card hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div class="small">Welcome back</div>
+        <div id="userGreeting" style="font-weight:800">User</div>
       </div>
-    </div>
-
-    <!-- quick stats -->
-    <div class="card" id="quickStats">
-      <div style="display:flex;gap:8px;justify-content:space-between">
-        <div style="text-align:center">
-          <div class="small">Shares</div>
-          <div style="font-weight:800" id="statShares">0</div>
-        </div>
-        <div style="text-align:center">
-          <div class="small">Times Funded</div>
-          <div style="font-weight:800" id="statFunded">0</div>
-        </div>
-        <div style="text-align:center">
-          <div class="small">Withdrawals</div>
-          <div style="font-weight:800" id="statWithdraw">0</div>
-        </div>
+      <div style="text-align:right">
+        <div class="small">Current balance</div>
+        <div style="font-weight:900;font-size:18px">₦ <span id="balance">0.00</span></div>
       </div>
-    </div>
-
-    <!-- buy shares card preview -->
-    <div class="card">
-      <h2>Buy Shares</h2>
-      <p class="small">Select a package from the Buy Shares tab below.</p>
     </div>
   </div>
 
-  <!-- Buy shares section -->
-  <div id="buySection" class="card hidden">
+  <!-- BUY SHARES -->
+  <div id="buyCard" class="card hidden">
     <h2>Buy Shares</h2>
-    <div id="buyErr" class="err hidden"></div>
-    <div id="packages"></div>
+    <div id="buyMsg" class="err hidden"></div>
+
+    <div id="packages">
+      <!-- packages will go here -->
+    </div>
   </div>
 
-  <!-- Funding section -->
-  <div id="fundSection" class="card hidden">
+  <!-- FUNDING (account info hidden until login) -->
+  <div id="fundCard" class="card hidden">
     <h2>Fund your account</h2>
-    <p class="small">Transfer to the account below and then confirm your payment. Minimum ₦1,500.</p>
+    <p class="small">Minimum ₦1,500. Transfer to the account below and click "I have made this transaction".</p>
 
-    <div style="margin-top:8px">
+    <div id="accountInfo" class="hidden" style="margin-top:8px">
       <div class="small">Account Name</div>
       <div style="font-weight:800">PrimeVest INC</div>
       <div class="small" style="margin-top:8px">Account Number</div>
@@ -140,142 +112,130 @@
     <div style="margin-top:12px">
       <label class="small">Amount (₦)</label>
       <input id="fundAmount" type="number" placeholder="e.g. 5000">
-      <label class="small">Reference (optional)</label>
+      <label class="small" style="margin-top:8px">Reference (optional)</label>
       <input id="fundRef" placeholder="Bank reference">
       <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="primary" onclick="createTransaction()">I have made this transaction</button>
+        <button class="primary" onclick="createPending()">I have made this transaction</button>
         <button class="ghost" onclick="clearFundForm()">Clear</button>
       </div>
       <div id="fundMsg" class="small" style="margin-top:8px"></div>
     </div>
   </div>
 
-  <!-- Profile -->
-  <div id="profileSection" class="card hidden">
+  <!-- PROFILE -->
+  <div id="profileCard" class="card hidden">
     <h2>Profile</h2>
     <div id="profileInfo"></div>
     <div style="margin-top:10px">
-      <button class="ghost" onclick="logout()">Sign out</button>
-    </div>
-  </div>
-
-  <div id="adminNotice" class="card hidden">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div><strong>Admin mode</strong><div class="small">You are signed in as an admin</div></div>
-      <div><a href="admin.html" style="color:var(--green);font-weight:800">Open Admin</a></div>
+      <button class="ghost" onclick="doLogout()">Sign out</button>
     </div>
   </div>
 
 </main>
 
 <nav class="bottom" id="bottomNav" style="display:none">
-  <button onclick="goto('dashboard')">Home</button>
-  <button onclick="goto('buy')">Buy Shares</button>
-  <button onclick="goto('fund')">Fund</button>
-  <button onclick="goto('profile')">Profile</button>
+  <button onclick="showTab('home')">Home</button>
+  <button onclick="showTab('buy')">Buy Shares</button>
+  <button onclick="showTab('fund')">Fund</button>
+  <button onclick="showTab('profile')">Profile</button>
 </nav>
 
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
 <script>
-/* ============================
-   INSERT YOUR FIREBASE CONFIG
-   ============================
-   Replace the object below with the config from your Firebase console.
+/*
+Local-only PrimeVest offline implementation.
+Data stored in localStorage under key: primevest_local_db
+Structure:
+{
+  users: { username: { username, phone, pass, balance, totalFunded, shares: [] } },
+  transactions: [ { id, username, amount, reference, status:'pending'|'confirmed'|'rejected', createdAt } ]
+}
 */
-const firebaseConfig = /* PASTE FIREBASE CONFIG HERE */ {};
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+// -------- storage helpers --------
+const STORAGE_KEY = 'primevest_local_db';
+function loadDB(){ try{ const s = localStorage.getItem(STORAGE_KEY); return s?JSON.parse(s):{users:{},transactions:[]}; }catch(e){return {users:{},transactions:[]}; } }
+function saveDB(db){ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
+let DB = loadDB();
 
-/* ---------- App state ---------- */
-let currentUser = null;
-let isAdmin = false;
-
-/* ---------- UI helpers ---------- */
-function show(el){ document.getElementById(el+'Section') && (document.getElementById(el+'Section').classList.remove('hidden')); }
-function hide(el){ document.getElementById(el+'Section') && (document.getElementById(el+'Section').classList.add('hidden')); }
-function hideAll(){ document.querySelectorAll('.card, .section').forEach(n=>n.classList.add('hidden')); }
-
-/* ---------- navigation ---------- */
-function goto(tab){
-  document.getElementById('buyErr').classList.add('hidden');
-  if(tab === 'dashboard'){ document.getElementById('dashboard').classList.remove('hidden'); document.getElementById('buySection').classList.add('hidden'); document.getElementById('fundSection').classList.add('hidden'); document.getElementById('profileSection').classList.add('hidden'); }
-  if(tab === 'buy'){ document.getElementById('buySection').classList.remove('hidden'); document.getElementById('dashboard').classList.add('hidden'); document.getElementById('fundSection').classList.add('hidden'); document.getElementById('profileSection').classList.add('hidden'); }
-  if(tab === 'fund'){ document.getElementById('fundSection').classList.remove('hidden'); document.getElementById('dashboard').classList.add('hidden'); document.getElementById('buySection').classList.add('hidden'); document.getElementById('profileSection').classList.add('hidden'); }
-  if(tab === 'profile'){ document.getElementById('profileSection').classList.remove('hidden'); document.getElementById('dashboard').classList.add('hidden'); document.getElementById('buySection').classList.add('hidden'); document.getElementById('fundSection').classList.add('hidden'); }
+// -------- UI helpers --------
+function show(el){ document.getElementById(el+'Card') && (document.getElementById(el+'Card').classList.remove('hidden')); }
+function hide(el){ document.getElementById(el+'Card') && (document.getElementById(el+'Card').classList.add('hidden')); }
+function hideAllMain(){ ['home','buy','fund','profile'].forEach(id=>hide(id)); }
+function showTab(tab){
+  hideAllMain();
+  if(tab==='home') show('home');
+  if(tab==='buy') { renderPackages(); show('buy'); }
+  if(tab==='fund') show('fund');
+  if(tab==='profile') renderProfile();
 }
 
-/* ---------- Signup / Login ---------- */
+// -------- auth UI --------
 function showSignup(){ document.getElementById('signupForm').classList.remove('hidden'); document.getElementById('loginForm').classList.add('hidden'); }
 function showLogin(){ document.getElementById('loginForm').classList.remove('hidden'); document.getElementById('signupForm').classList.add('hidden'); }
-function hideForms(){ document.getElementById('signupForm').classList.add('hidden'); document.getElementById('loginForm').classList.add('hidden'); }
+function hideAuthForms(){ document.getElementById('signupForm').classList.add('hidden'); document.getElementById('loginForm').classList.add('hidden'); }
 
-async function doSignUp(){
-  const email = document.getElementById('suEmail').value.trim();
-  const phone = document.getElementById('suPhone').value.trim();
-  const pass = document.getElementById('suPass').value;
-  if(!email || !phone || !pass){ document.getElementById('suMsg').innerText='Fill all fields'; return; }
-  try{
-    const cred = await auth.createUserWithEmailAndPassword(email, pass);
-    const uid = cred.user.uid;
-    await db.collection('users').doc(uid).set({
-      email, phone, createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      balance: 0, totalFunded: 0, shares: 0, fundCount: 0, withdrawCount: 0
-    });
-    document.getElementById('suMsg').innerText = 'Account created. Please sign in.';
-    hideForms();
-  } catch(e){ document.getElementById('suMsg').innerText = e.message; }
+// -------- user session --------
+let currentUser = null;
+function setSession(username){
+  currentUser = username;
+  localStorage.setItem('primevest_session', username);
+}
+function clearSession(){
+  currentUser = null;
+  localStorage.removeItem('primevest_session');
 }
 
-async function doLogin(){
-  const email = document.getElementById('liEmail').value.trim();
-  const pass = document.getElementById('liPass').value;
-  if(!email || !pass){ document.getElementById('liMsg').innerText='Enter email and password'; return; }
-  try{
-    await auth.signInWithEmailAndPassword(email, pass);
-    document.getElementById('liMsg').innerText = '';
-  } catch(e){ document.getElementById('liMsg').innerText = e.message; }
+// -------- initial session restore --------
+const savedSession = localStorage.getItem('primevest_session');
+if(savedSession && DB.users[savedSession]) {
+  setSession(savedSession);
+  onLogin();
 }
 
-/* ---------- Auth listener ---------- */
-auth.onAuthStateChanged(async user=>{
-  currentUser = user;
-  if(!user){
-    document.getElementById('authCard').classList.remove('hidden');
-    document.getElementById('dashboard').classList.add('hidden');
-    document.getElementById('bottomNav').style.display = 'none';
-    return;
-  }
-  // check admin
-  const adminDoc = await db.collection('admins').doc(user.uid).get();
-  isAdmin = adminDoc.exists;
-  if(isAdmin){
-    document.getElementById('adminNotice').classList.remove('hidden');
-  } else {
-    document.getElementById('adminNotice').classList.add('hidden');
-  }
-  // load user profile
-  const udoc = await db.collection('users').doc(user.uid).get();
-  const data = udoc.data();
-  document.getElementById('userName').innerText = data.email || user.email;
-  document.getElementById('topBalance').innerText = (data.balance || 0).toFixed(2);
-  document.getElementById('balance').innerText = (data.balance || 0).toFixed(2);
-  document.getElementById('statShares').innerText = (data.shares || 0);
-  document.getElementById('statFunded').innerText = (data.fundCount || 0);
-  document.getElementById('statWithdraw').innerText = (data.withdrawCount || 0);
+// -------- signup / login (local) --------
+function doSignup(){
+  const u = document.getElementById('suUser').value.trim();
+  const ph = document.getElementById('suPhone').value.trim();
+  const p = document.getElementById('suPass').value;
+  if(!u || !ph || !p){ document.getElementById('suMsg').innerText='Fill all fields'; return; }
+  if(DB.users[u]){ document.getElementById('suMsg').innerText='Username exists'; return; }
+  DB.users[u] = { username:u, phone:ph, pass:p, balance:0, totalFunded:0, shares:[] };
+  saveDB(DB);
+  document.getElementById('suMsg').innerText = 'Account created. Please sign in.';
+  document.getElementById('suUser').value=''; document.getElementById('suPhone').value=''; document.getElementById('suPass').value='';
+  showLogin();
+}
+
+function doLogin(){
+  const u = document.getElementById('liUser').value.trim();
+  const p = document.getElementById('liPass').value;
+  const user = DB.users[u];
+  if(!u || !p){ document.getElementById('liMsg').innerText='Enter details'; return; }
+  if(!user || user.pass !== p){ document.getElementById('liMsg').innerText='Invalid credentials'; return; }
+  setSession(u);
+  onLogin();
+}
+
+// -------- on login (show main UI) --------
+function onLogin(){
   document.getElementById('authCard').classList.add('hidden');
-  document.getElementById('dashboard').classList.remove('hidden');
-  document.getElementById('bottomNav').style.display = 'flex';
-  renderPackages();
-});
+  document.getElementById('bottomNav').style.display='flex';
+  document.getElementById('topBalanceBox').classList.remove('hidden');
+  updateBalanceUI();
+  showTab('home');
+  // show account info in fund only after login
+  document.getElementById('accountInfo').classList.remove('hidden');
+  // greet
+  document.getElementById('userGreeting').innerText = currentUser;
+}
 
-/* ---------- Packages ---------- */
+// -------- logout --------
+function doLogout(){
+  clearSession();
+  location.reload();
+}
+
+// -------- packages (unchanged semantics) --------
 const PACKAGES = [
   {cost:2000,payout:10000,label:'Agriculture'},
   {cost:10000,payout:50000,label:'Resources'},
@@ -284,80 +244,118 @@ const PACKAGES = [
 
 function renderPackages(){
   const container = document.getElementById('packages');
-  container.innerHTML = '';
+  container.innerHTML='';
   PACKAGES.forEach((p, i)=>{
     const div = document.createElement('div');
-    div.className = 'card';
+    div.className='card';
     div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
       <div>
         <div style="font-size:14px;font-weight:800">Get ₦${p.payout.toLocaleString()}</div>
         <div class="small">Pay ₦${p.cost.toLocaleString()} • ${p.label}</div>
       </div>
-      <div>
-        <button class="primary" onclick="buyConfirm(${i})">BUY</button>
-      </div>
+      <div><button class="primary" onclick="attemptBuy(${i})">BUY</button></div>
     </div>`;
     container.appendChild(div);
   });
 }
 
-/* ---------- Buy flow ---------- */
-async function buyConfirm(index){
-  if(!currentUser){ alert('Please sign in'); return; }
-  const pack = PACKAGES[index];
-  const udocRef = db.collection('users').doc(currentUser.uid);
-  const udoc = await udocRef.get();
-  const data = udoc.data();
-  if(!data || (data.balance || 0) < pack.cost){
-    // redirect to funding with message
-    goto('fund'); document.getElementById('fundMsg').innerText = 'Please fund your account to complete this action.'; return;
+function attemptBuy(index){
+  if(!currentUser){ alert('Please sign in to buy.'); return; }
+  const p = PACKAGES[index];
+  const user = DB.users[currentUser];
+  if((user.balance || 0) < p.cost){
+    document.getElementById('buyMsg').classList.remove('hidden');
+    document.getElementById('buyMsg').innerText = 'Please fund your account to complete this action.';
+    showTab('fund');
+    return;
   }
-  // Deduct and record share purchase
-  await udocRef.update({
-    balance: firebase.firestore.FieldValue.increment(-pack.cost),
-    shares: firebase.firestore.FieldValue.increment(pack.cost)
-  });
-  await db.collection('shares').add({
-    userId: currentUser.uid, package: pack.label, cost: pack.cost, payout: pack.payout, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  alert('Purchase successful. Check profile for updates.');
-  // refresh profile display
-  const newUser = await udocRef.get();
-  const nd = newUser.data();
-  document.getElementById('topBalance').innerText = (nd.balance || 0).toFixed(2);
-  document.getElementById('balance').innerText = (nd.balance || 0).toFixed(2);
-  document.getElementById('statShares').innerText = (nd.shares || 0);
+  // deduct and record share
+  user.balance = (user.balance||0) - p.cost;
+  user.shares.push({package:p.label,cost:p.cost,payout:p.payout,createdAt:new Date().toISOString()});
+  saveDB(DB);
+  alert('Purchase successful');
+  updateBalanceUI();
+  renderProfileInfo();
 }
 
-/* ---------- Funding flow ---------- */
-async function createTransaction(){
+// -------- funding (create pending tx) --------
+function createPending(){
   if(!currentUser){ alert('Please sign in'); return; }
   const amt = Number(document.getElementById('fundAmount').value || 0);
   const ref = document.getElementById('fundRef').value.trim();
   if(!amt || amt < 1500){ document.getElementById('fundMsg').innerText = 'Minimum funding amount is ₦1,500.'; return; }
-  // create pending transaction
-  const tx = {
-    userId: currentUser.uid,
-    amount: Math.round(amt),
-    reference: ref || null,
-    status: 'pending',
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
-  await db.collection('transactions').add(tx);
+  const tx = { id: 'tx_'+Date.now(), username: currentUser, amount: Math.round(amt), reference: ref||null, status:'pending', createdAt: new Date().toISOString() };
+  DB.transactions.push(tx);
+  saveDB(DB);
   document.getElementById('fundMsg').innerText = 'Transaction recorded and is pending confirmation.';
   // clear form
-  document.getElementById('fundAmount').value = '';
-  document.getElementById('fundRef').value = '';
+  document.getElementById('fundAmount').value=''; document.getElementById('fundRef').value='';
+  // keep pending until admin confirms locally
 }
 
-/* ---------- helper: clear fund form ---------- */
+// -------- admin cannot view others remotely (offline) --------
+// Admin page will read DB.transactions for pending items if opened on same browser/device.
+
+// -------- update UI & profile rendering --------
+function updateBalanceUI(){
+  if(!currentUser) return;
+  const user = DB.users[currentUser];
+  document.getElementById('topBalance').innerText = (user.balance || 0).toFixed(2);
+  document.getElementById('balance').innerText = (user.balance || 0).toFixed(2);
+}
+
+function renderProfileInfo(){
+  if(!currentUser) return;
+  const u = DB.users[currentUser];
+  const container = document.getElementById('profileInfo');
+  container.innerHTML = `
+    <div class="small">Username: <strong>${u.username}</strong></div>
+    <div class="small">Phone: <strong>${u.phone}</strong></div>
+    <div class="small">Total funded: ₦${(u.totalFunded||0).toLocaleString()}</div>
+    <div class="small">Shares bought: ${ (u.shares||[]).length }</div>
+  `;
+}
+
+function renderProfile(){
+  renderProfileInfo();
+  showTab('profile'); // ensure profile visible
+}
+
+// -------- admin helper: used on admin.html to confirm txs (local) --------
+function adminConfirmTransaction(txId){
+  // this function will be called by admin page (admin.html) when admin confirms a tx on same device
+  const txIndex = DB.transactions.findIndex(t=>t.id===txId);
+  if(txIndex === -1) return false;
+  const tx = DB.transactions[txIndex];
+  if(tx.status !== 'pending') return false;
+  // update user's balance
+  const user = DB.users[tx.username];
+  if(!user) return false;
+  user.balance = (user.balance || 0) + tx.amount;
+  user.totalFunded = (user.totalFunded || 0) + tx.amount;
+  user.fundCount = (user.fundCount||0) + 1;
+  // mark tx confirmed
+  DB.transactions[txIndex].status = 'confirmed';
+  DB.transactions[txIndex].confirmedAt = new Date().toISOString();
+  saveDB(DB);
+  // if admin is confirming on same device and session user matches, update UI
+  if(currentUser === tx.username) updateBalanceUI();
+  return true;
+}
+
+// expose adminConfirmTransaction to window so admin.html can call it (when admin uses same browser)
+window.adminConfirmTransaction = adminConfirmTransaction;
+
+// -------- utility: clear fund form --------
 function clearFundForm(){ document.getElementById('fundAmount').value=''; document.getElementById('fundRef').value=''; document.getElementById('fundMsg').innerText=''; }
 
-/* ---------- logout ---------- */
-function logout(){
-  auth.signOut();
-  location.reload();
+// -------- render initial UI depending on login --------
+if(currentUser){
+  onLogin();
+} else {
+  // show auth card
+  document.getElementById('authCard').classList.remove('hidden');
 }
 </script>
 </body>
-  </html>
+</html>
