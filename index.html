@@ -112,14 +112,38 @@
   </div>
 
   <!-- BUY SHARES -->
-  <div id="buyCard" class="card hidden">
-    <h2>Buy Shares</h2>
-    <div id="buyMsg" class="err hidden"></div>
-
-    <div class="shares-grid" id="sharesGrid" style="margin-top:12px">
-      <!-- share cards injected by JS -->
+  <section id="buy-shares" class="p-4 bg-gray-50">
+  <h2 class="text-2xl font-bold mb-4 text-center">Top Shares for the Week</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+    
+    <!-- Example Share Card -->
+    <div class="bg-white shadow rounded-2xl p-4">
+      <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=800&q=60" alt="Agriculture" class="rounded-lg mb-3">
+      <h3 class="text-lg font-semibold">Agriculture</h3>
+      <p>₦10,000 to get ₦50,000</p>
+      <p class="text-sm text-gray-500">Duration: 26 days</p>
+      <button class="mt-2 w-full bg-green-600 text-white py-2 rounded-lg">BUY</button>
     </div>
+
+    <div class="bg-white shadow rounded-2xl p-4">
+      <img src="https://images.unsplash.com/photo-1509395176047-4a66953fd231?auto=format&fit=crop&w=800&q=60" alt="Energy" class="rounded-lg mb-3">
+      <h3 class="text-lg font-semibold">Energy</h3>
+      <p>₦20,000 to get ₦120,000</p>
+      <p class="text-sm text-gray-500">Duration: 30 days</p>
+      <button class="mt-2 w-full bg-green-600 text-white py-2 rounded-lg">BUY</button>
+    </div>
+
+    <div class="bg-white shadow rounded-2xl p-4">
+      <img src="https://images.unsplash.com/photo-1556761175-4b46a572b786?auto=format&fit=crop&w=800&q=60" alt="Tech" class="rounded-lg mb-3">
+      <h3 class="text-lg font-semibold">Technology</h3>
+      <p>₦50,000 to get ₦300,000</p>
+      <p class="text-sm text-gray-500">Duration: 45 days</p>
+      <button class="mt-2 w-full bg-green-600 text-white py-2 rounded-lg">BUY</button>
+    </div>
+
+    <!-- Add up to 15 cards like these -->
   </div>
+  </section>
 
   <!-- FUNDING (account info hidden until login) -->
   <div id="fundCard" class="card hidden">
