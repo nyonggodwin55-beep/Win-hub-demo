@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>PrimeVest (mobile)</title>
-<meta name="description" content="PrimeVest - demo local investment platform">
+<meta name="description" content="PrimeVest - local demo investment platform">
 <style>
   :root{--bg:#ffffff;--card:#f7f8fa;--text:#0b1220;--muted:#6b7280;--green:#059669;--gold:#d4af37}
   *{box-sizing:border-box}
@@ -13,7 +13,7 @@
   .logo{display:flex;align-items:center;gap:10px}
   .badge{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#34d399,#059669);color:#fff;font-weight:800}
   .balance-box{padding:6px 10px;border-radius:12px;background:#f0fff6;border:1px solid #e6fffb;color:var(--green);font-weight:800}
-  main{padding:14px}
+  main{padding:14px; padding-bottom:120px}
   .card{background:var(--card);padding:12px;border-radius:12px;margin-bottom:12px;box-shadow:0 6px 18px rgba(12,20,24,0.03)}
   h2{margin:0 0 8px;font-size:18px}
   p.mute{color:var(--muted);font-size:13px;margin:6px 0}
@@ -25,7 +25,7 @@
   .hidden{display:none}
   .err{color:#dc2626;font-weight:700}
   .small{font-size:13px;color:var(--muted)}
-  /* share grid */
+  /* shares */
   .shares-grid{display:grid;grid-template-columns:1fr;gap:12px}
   .share-card{display:flex;gap:10px;align-items:center;padding:12px;border-radius:12px;background:#fff;border:1px solid #eef3f2}
   .share-art{width:86px;height:86px;border-radius:10px;background:#eee;flex-shrink:0;overflow:hidden}
@@ -34,12 +34,13 @@
   .share-title{font-weight:800}
   .share-meta{color:var(--muted);font-size:13px;margin-top:6px}
   .share-action{margin-left:8px}
-  /* big share card for top shares */
-  .top-shares{display:flex;flex-direction:column;gap:10px}
-  .top-card{padding:12px;border-radius:12px;background:linear-gradient(90deg,#fff,#f8fdf8);border:1px solid #e6f8ee}
+  /* banner */
   .banner{display:flex;gap:12px;align-items:center}
   .banner img{width:110px;height:80px;border-radius:10px;object-fit:cover}
   .join-cta{background:linear-gradient(90deg,#e6fff1,#dffbf4);padding:10px;border-radius:10px;text-align:center}
+  /* tx history */
+  .tx-list{padding-left:14px;margin-top:8px}
+  .tx-item{margin-bottom:6px;font-size:13px}
   @media(min-width:720px){body{max-width:420px;margin:0 auto}}
 </style>
 </head>
@@ -86,20 +87,20 @@
     </div>
   </div>
 
-  <!-- HOME (after login) -->
+  <!-- HOME -->
   <div id="homeCard" class="card hidden">
     <div class="banner">
       <img src="https://i.imgur.com/8kmJzZK.png" alt="people holding banner">
       <div>
         <h2>PrimeVest INC</h2>
-        <p class="small">We bring real, curated investment products for everyday investors. Join our community and invest in tangible projects.</p>
+        <p class="small">We bring curated investment products for everyday investors. Join our community and invest in real projects.</p>
         <div style="margin-top:8px" class="join-cta">Join our community — trusted investors and verified opportunities</div>
       </div>
     </div>
 
-    <div style="margin-top:12px" class="top-shares">
+    <div style="margin-top:12px">
       <div class="small">Top shares this week</div>
-      <div class="top-card">
+      <div class="card" style="margin-top:8px;padding:10px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div>
             <div style="font-weight:900">₦10,000 → ₦1,000,000</div>
@@ -112,40 +113,13 @@
   </div>
 
   <!-- BUY SHARES -->
-  <section id="buy-shares" class="p-4 bg-gray-50">
-  <h2 class="text-2xl font-bold mb-4 text-center">Top Shares for the Week</h2>
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-    
-    <!-- Example Share Card -->
-    <div class="bg-white shadow rounded-2xl p-4">
-      <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=800&q=60" alt="Agriculture" class="rounded-lg mb-3">
-      <h3 class="text-lg font-semibold">Agriculture</h3>
-      <p>₦10,000 to get ₦50,000</p>
-      <p class="text-sm text-gray-500">Duration: 26 days</p>
-      <button class="mt-2 w-full bg-green-600 text-white py-2 rounded-lg">BUY</button>
-    </div>
-
-    <div class="bg-white shadow rounded-2xl p-4">
-      <img src="https://images.unsplash.com/photo-1509395176047-4a66953fd231?auto=format&fit=crop&w=800&q=60" alt="Energy" class="rounded-lg mb-3">
-      <h3 class="text-lg font-semibold">Energy</h3>
-      <p>₦20,000 to get ₦120,000</p>
-      <p class="text-sm text-gray-500">Duration: 30 days</p>
-      <button class="mt-2 w-full bg-green-600 text-white py-2 rounded-lg">BUY</button>
-    </div>
-
-    <div class="bg-white shadow rounded-2xl p-4">
-      <img src="https://images.unsplash.com/photo-1556761175-4b46a572b786?auto=format&fit=crop&w=800&q=60" alt="Tech" class="rounded-lg mb-3">
-      <h3 class="text-lg font-semibold">Technology</h3>
-      <p>₦50,000 to get ₦300,000</p>
-      <p class="text-sm text-gray-500">Duration: 45 days</p>
-      <button class="mt-2 w-full bg-green-600 text-white py-2 rounded-lg">BUY</button>
-    </div>
-
-    <!-- Add up to 15 cards like these -->
+  <div id="buyCard" class="card hidden">
+    <h2>Buy Shares</h2>
+    <div id="buyMsg" class="err hidden"></div>
+    <div class="shares-grid" id="sharesGrid" style="margin-top:12px"></div>
   </div>
-  </section>
 
-  <!-- FUNDING (account info hidden until login) -->
+  <!-- FUNDING -->
   <div id="fundCard" class="card hidden">
     <h2>Fund your account</h2>
     <p class="small">Minimum ₦1,500. Transfer to the account below and then confirm your payment.</p>
@@ -169,6 +143,7 @@
         <button class="ghost" onclick="clearFundForm()">Clear</button>
       </div>
       <div id="fundMsg" class="small" style="margin-top:8px"></div>
+      <div id="userPending" style="margin-top:8px" class="small"></div>
     </div>
   </div>
 
@@ -176,6 +151,12 @@
   <div id="profileCard" class="card hidden">
     <h2>Profile</h2>
     <div id="profileInfo"></div>
+
+    <div style="margin-top:10px">
+      <div class="small">Transaction history</div>
+      <div id="txHistory" class="tx-list"></div>
+    </div>
+
     <div style="margin-top:10px">
       <button class="ghost" onclick="doLogout()">Sign out</button>
     </div>
@@ -191,17 +172,10 @@
 </nav>
 
 <script>
-/*
-Offline local DB (keeps old compatibility so admin.html that reads 'pendingTransactions' works)
-Storage keys:
- - primevest_local_db  -> { users:{}, transactions:[] }
- - pendingTransactions -> array of pending txs (for older admin.html)
- - users               -> plain users object (for older admin.html)
-*/
+/* Local DB key */
 const STORAGE_KEY = 'primevest_local_db';
-function loadDB(){ try{ const s = localStorage.getItem(STORAGE_KEY); return s?JSON.parse(s):{users:{},transactions:[]}; }catch(e){return {users:{},transactions:[]}; } }
-function saveDB(db){ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); // also keep legacy keys
-  // legacy keys for older admin.html compatibility:
+function loadDB(){ try{ const s=localStorage.getItem(STORAGE_KEY); return s?JSON.parse(s):{users:{},transactions:[]}; }catch(e){return {users:{},transactions:[]}; } }
+function saveDB(db){ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); // legacy for older admin
   localStorage.setItem('pendingTransactions', JSON.stringify(db.transactions.filter(t=>t.status==='pending')));
   localStorage.setItem('users', JSON.stringify(db.users));
 }
@@ -229,35 +203,34 @@ let currentUser = null;
 function setSession(username){ currentUser = username; localStorage.setItem('primevest_session', username); }
 function clearSession(){ currentUser = null; localStorage.removeItem('primevest_session'); }
 
-// restore session
+/* restore session */
 const savedSession = localStorage.getItem('primevest_session');
 if(savedSession && DB.users[savedSession]) { setSession(savedSession); onLogin(); }
 
-/* Signup / Login (local) */
+/* Signup/Login (local) */
 function doSignup(){
   const u = document.getElementById('suUser').value.trim();
   const ph = document.getElementById('suPhone').value.trim();
   const p = document.getElementById('suPass').value;
-  if(!u || !ph || !p){ document.getElementById('suMsg').innerText='Fill all fields'; return; }
+  if(!u||!ph||!p){ document.getElementById('suMsg').innerText='Fill all fields'; return; }
   if(DB.users[u]){ document.getElementById('suMsg').innerText='Username exists'; return; }
   DB.users[u] = { username:u, phone:ph, pass:p, balance:0, totalFunded:0, shares:[] };
   saveDB(DB);
-  document.getElementById('suMsg').innerText = 'Account created. Please sign in.';
+  document.getElementById('suMsg').innerText='Account created. Please sign in.';
   document.getElementById('suUser').value=''; document.getElementById('suPhone').value=''; document.getElementById('suPass').value='';
   showLogin();
 }
-
 function doLogin(){
   const u = document.getElementById('liUser').value.trim();
   const p = document.getElementById('liPass').value;
   const user = DB.users[u];
-  if(!u || !p){ document.getElementById('liMsg').innerText='Enter details'; return; }
-  if(!user || user.pass !== p){ document.getElementById('liMsg').innerText='Invalid credentials'; return; }
+  if(!u||!p){ document.getElementById('liMsg').innerText='Enter details'; return; }
+  if(!user||user.pass!==p){ document.getElementById('liMsg').innerText='Invalid credentials'; return; }
   setSession(u);
   onLogin();
 }
 
-/* onLogin UI */
+/* onLogin */
 function onLogin(){
   document.getElementById('authCard').classList.add('hidden');
   document.getElementById('bottomNav').style.display='flex';
@@ -266,12 +239,13 @@ function onLogin(){
   updateBalanceUI();
   showTab('home');
   renderProfile();
+  renderPendingForUser();
 }
 
 /* Logout */
 function doLogout(){ clearSession(); location.reload(); }
 
-/* Packages: 15 realistic shares with images */
+/* Shares data (15 shares) */
 const SHARES = [
   {label:'Agriculture', cost:10000, payout:50000, days:26, img:'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=400&q=60'},
   {label:'Solar Energy', cost:20000, payout:120000, days:45, img:'https://images.unsplash.com/photo-1509395062183-67c5ad6faff9?auto=format&fit=crop&w=400&q=60'},
@@ -311,7 +285,7 @@ function renderShares(){
   });
 }
 
-/* Buy flow */
+/* attempt buy */
 function attemptBuy(index){
   if(!currentUser){ alert('Please sign in to buy.'); return; }
   const pack = SHARES[index];
@@ -322,17 +296,17 @@ function attemptBuy(index){
     showTab('fund');
     return;
   }
-  // deduct and record
   user.balance = (user.balance||0) - pack.cost;
   if(!user.shares) user.shares = [];
   user.shares.push({package:pack.label,cost:pack.cost,payout:pack.payout,createdAt:new Date().toISOString()});
+  DB.users[currentUser] = user;
   saveDB(DB);
   alert('Purchase successful');
   updateBalanceUI();
   renderProfile();
 }
 
-/* Funding: create pending tx and write legacy keys for admin.html compatibility */
+/* funding: create pending tx */
 function createPending(){
   if(!currentUser){ alert('Please sign in'); return; }
   const amt = Number(document.getElementById('fundAmount').value || 0);
@@ -340,17 +314,25 @@ function createPending(){
   if(!amt || amt < 1500){ document.getElementById('fundMsg').innerText = 'Minimum funding amount is ₦1,500.'; return; }
   const tx = { id: 'tx_'+Date.now(), username: currentUser, amount: Math.round(amt), reference: ref||null, status:'pending', createdAt: new Date().toISOString() };
   DB.transactions.push(tx);
+  DB.users[currentUser] = DB.users[currentUser]; // ensure user exists
   saveDB(DB);
   document.getElementById('fundMsg').innerText = 'Transaction recorded and is pending confirmation.';
   document.getElementById('fundAmount').value=''; document.getElementById('fundRef').value='';
-  // Also update legacy pendingTransactions and users keys (for admin.html that expects them)
-  const legacyPending = JSON.parse(localStorage.getItem('pendingTransactions')||'[]');
-  legacyPending.push({id:tx.id,username:tx.username,amount:tx.amount,reference:tx.reference,status:tx.status});
-  localStorage.setItem('pendingTransactions', JSON.stringify(legacyPending));
-  localStorage.setItem('users', JSON.stringify(DB.users));
+  renderPendingForUser();
 }
 
-/* admin helper for admin.html to call if admin confirms on same device */
+/* show user's pending tx */
+function renderPendingForUser(){
+  if(!currentUser) return;
+  const tx = DB.transactions.filter(t=>t.username===currentUser).reverse()[0];
+  if(tx && tx.status==='pending'){
+    document.getElementById('userPending').innerText = `Pending Confirmation — tx id: ${tx.id}`;
+  } else {
+    document.getElementById('userPending').innerText = '';
+  }
+}
+
+/* admin confirm helper (called by admin page if in same browser) */
 function adminConfirmTransaction(txId){
   const idx = DB.transactions.findIndex(t=>t.id===txId);
   if(idx === -1) return false;
@@ -361,30 +343,32 @@ function adminConfirmTransaction(txId){
   user.balance = (user.balance||0) + tx.amount;
   user.totalFunded = (user.totalFunded||0) + tx.amount;
   user.fundCount = (user.fundCount||0) + 1;
+  DB.users[tx.username] = user;
   DB.transactions[idx].status = 'confirmed';
   DB.transactions[idx].confirmedAt = new Date().toISOString();
   saveDB(DB);
-  // update legacy pendingTransactions
+  // update pendingTransactions legacy key
   let legacy = JSON.parse(localStorage.getItem('pendingTransactions')||'[]');
   legacy = legacy.filter(p=>p.id!==txId);
   localStorage.setItem('pendingTransactions', JSON.stringify(legacy));
   localStorage.setItem('users', JSON.stringify(DB.users));
-  // update UI if current user affected
-  if(currentUser === tx.username) updateBalanceUI();
+  if(currentUser === tx.username) {
+    updateBalanceUI();
+    renderPendingForUser();
+    renderProfile();
+  }
   return true;
 }
-// expose globally
 window.adminConfirmTransaction = adminConfirmTransaction;
 
-/* update UI and profile */
+/* update UI & profile */
 function updateBalanceUI(){
   if(!currentUser) return;
   const user = DB.users[currentUser];
-  document.getElementById('topBalance').innerText = (user.balance || 0).toFixed(2);
-  document.getElementById('balance').innerText = (user.balance || 0).toFixed(2);
+  document.getElementById('topBalance').innerText = (user.balance||0).toFixed(2);
+  document.getElementById('balance').innerText = (user.balance||0).toFixed(2);
 }
-
-/* profile render */
+/* profile */
 function renderProfile(){
   if(!currentUser) return;
   const u = DB.users[currentUser];
@@ -392,31 +376,31 @@ function renderProfile(){
   container.innerHTML = `
     <div class="small">Username: <strong>${u.username}</strong></div>
     <div class="small">Phone: <strong>${u.phone}</strong></div>
+    <div class="small">Current balance: ₦${(u.balance||0).toLocaleString()}</div>
     <div class="small">Total funded: ₦${(u.totalFunded||0).toLocaleString()}</div>
-    <div class="small">Shares bought: ${ (u.shares||[]).length }</div>
-    <div style="margin-top:8px">
-      <div class="small">Transactions (most recent)</div>
-      ${ renderUserTxs(u.username) }
-    </div>
+    <div class="small">Shares owned: ${ (u.shares||[]).length }</div>
   `;
+  // transaction history
+  const txs = DB.transactions.filter(t=>t.username===currentUser).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const list = document.getElementById('txHistory');
+  if(!txs.length){ list.innerHTML = '<div class="small">No transactions yet.</div>'; return; }
+  list.innerHTML = txs.map(t=>`<div class="tx-item">₦${t.amount.toLocaleString()} — ${t.status} — ${new Date(t.createdAt).toLocaleString()}</div>`).join('');
 }
 
-function renderUserTxs(username){
-  const userTxs = DB.transactions.filter(t=>t.username===username).slice(-6).reverse();
-  if(!userTxs.length) return '<div class="small">No transactions yet.</div>';
-  return '<ul style="padding-left:18px;margin-top:6px">' + userTxs.map(t=>`<li class="small">₦${t.amount.toLocaleString()} — ${t.status} — ${new Date(t.createdAt).toLocaleDateString()}</li>`).join('') + '</ul>';
-}
-
-/* clear fund form */
+/* helper clear fund form */
 function clearFundForm(){ document.getElementById('fundAmount').value=''; document.getElementById('fundRef').value=''; document.getElementById('fundMsg').innerText=''; }
 
-/* render initial UI depending on session */
+/* save & initial UI */
+saveDB(DB);
 if(currentUser){
   onLogin();
 } else {
   document.getElementById('authCard').classList.remove('hidden');
 }
 
+/* make sure admin.html compatibility: ensure legacy keys exist */
+localStorage.setItem('pendingTransactions', JSON.stringify(DB.transactions.filter(t=>t.status==='pending')));
+localStorage.setItem('users', JSON.stringify(DB.users));
 </script>
 </body>
-          </html>
+  </html>
