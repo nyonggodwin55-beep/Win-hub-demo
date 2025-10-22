@@ -1,10 +1,9 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>PrimeVest (mobile)</title>
-<meta name="description" content="PrimeVest - local demo investment platform">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PrimeVest — Mobile</title>
 <style>
   :root{--bg:#ffffff;--card:#f7f8fa;--text:#0b1220;--muted:#6b7280;--green:#059669;--gold:#d4af37}
   *{box-sizing:border-box}
@@ -13,7 +12,7 @@
   .logo{display:flex;align-items:center;gap:10px}
   .badge{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#34d399,#059669);color:#fff;font-weight:800}
   .balance-box{padding:6px 10px;border-radius:12px;background:#f0fff6;border:1px solid #e6fffb;color:var(--green);font-weight:800}
-  main{padding:14px; padding-bottom:120px}
+  main{padding:14px;padding-bottom:130px}
   .card{background:var(--card);padding:12px;border-radius:12px;margin-bottom:12px;box-shadow:0 6px 18px rgba(12,20,24,0.03)}
   h2{margin:0 0 8px;font-size:18px}
   p.mute{color:var(--muted);font-size:13px;margin:6px 0}
@@ -47,26 +46,25 @@
 <body>
 
 <header>
-  <div class="logo"><div class="badge" id="logoBadge">PV</div><div class="brand">PrimeVest</div></div>
+  <div class="logo"><div class="badge">PV</div><div class="brand">PrimeVest</div></div>
+  <!-- balance hidden until login -->
   <div id="topBalanceBox" class="balance-box hidden">₦ <span id="topBalance">0.00</span></div>
 </header>
 
-<main id="main">
+<main>
 
-  <!-- AUTH CARD -->
+  <!-- AUTH card -->
   <div id="authCard" class="card">
     <h2>Welcome to PrimeVest</h2>
-    <p class="mute">Secure. Simple. Smart investing — demo local-only.</p>
+    <p class="mute">Secure. Simple. Smart investing — demo (local only).</p>
 
     <div id="signedOutActions">
       <button class="primary" onclick="showSignup()">Sign up</button>
       <button class="ghost" onclick="showLogin()">Sign in</button>
     </div>
 
-    <!-- SIGNUP -->
     <div id="signupForm" class="hidden" style="margin-top:12px">
       <input id="suUser" placeholder="Create username">
-      <input id="suPhone" placeholder="Phone number">
       <input id="suPass" type="password" placeholder="Password">
       <div style="display:flex;gap:8px;margin-top:10px">
         <button class="primary" onclick="doSignup()">Create account</button>
@@ -75,7 +73,6 @@
       <div id="suMsg" class="small"></div>
     </div>
 
-    <!-- LOGIN -->
     <div id="loginForm" class="hidden" style="margin-top:12px">
       <input id="liUser" placeholder="Username">
       <input id="liPass" type="password" placeholder="Password">
@@ -94,7 +91,7 @@
       <div>
         <h2>PrimeVest INC</h2>
         <p class="small">We bring curated investment products for everyday investors. Join our community and invest in real projects.</p>
-        <div style="margin-top:8px" class="join-cta">Join our community — trusted investors and verified opportunities</div>
+        <div style="margin-top:8px" class="join-cta">Join our community — trusted investors and opportunities</div>
       </div>
     </div>
 
@@ -119,10 +116,10 @@
     <div class="shares-grid" id="sharesGrid" style="margin-top:12px"></div>
   </div>
 
-  <!-- FUNDING -->
+  <!-- FUND -->
   <div id="fundCard" class="card hidden">
     <h2>Fund your account</h2>
-    <p class="small">Minimum ₦1,500. Transfer to the account below and then confirm your payment.</p>
+    <p class="small">Minimum ₦1,500. Transfer to the account below then confirm your payment.</p>
 
     <div id="accountInfo" class="hidden" style="margin-top:8px">
       <div class="small">Account Name</div>
@@ -143,7 +140,7 @@
         <button class="ghost" onclick="clearFundForm()">Clear</button>
       </div>
       <div id="fundMsg" class="small" style="margin-top:8px"></div>
-      <div id="userPending" style="margin-top:8px" class="small"></div>
+      <div id="userPending" class="small" style="margin-top:8px"></div>
     </div>
   </div>
 
@@ -172,10 +169,14 @@
 </nav>
 
 <script>
-/* Local DB key */
+/*
+Local DB key: primevest_local_db
+Structure:
+{ users: { username: { username, pass, balance, totalFunded, shares:[] } }, transactions: [ {id,username,amount,reference,status,createdAt,...} ] }
+*/
 const STORAGE_KEY = 'primevest_local_db';
 function loadDB(){ try{ const s=localStorage.getItem(STORAGE_KEY); return s?JSON.parse(s):{users:{},transactions:[]}; }catch(e){return {users:{},transactions:[]}; } }
-function saveDB(db){ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); // legacy for older admin
+function saveDB(db){ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); // keep legacy keys for older admin.html compatibility
   localStorage.setItem('pendingTransactions', JSON.stringify(db.transactions.filter(t=>t.status==='pending')));
   localStorage.setItem('users', JSON.stringify(db.users));
 }
@@ -193,7 +194,7 @@ function showTab(tab){
   if(tab==='profile') show('profile');
 }
 
-/* Auth UI */
+/* Auth forms */
 function showSignup(){ document.getElementById('signupForm').classList.remove('hidden'); document.getElementById('loginForm').classList.add('hidden'); }
 function showLogin(){ document.getElementById('loginForm').classList.remove('hidden'); document.getElementById('signupForm').classList.add('hidden'); }
 function hideAuthForms(){ document.getElementById('signupForm').classList.add('hidden'); document.getElementById('loginForm').classList.add('hidden'); }
@@ -207,17 +208,16 @@ function clearSession(){ currentUser = null; localStorage.removeItem('primevest_
 const savedSession = localStorage.getItem('primevest_session');
 if(savedSession && DB.users[savedSession]) { setSession(savedSession); onLogin(); }
 
-/* Signup/Login (local) */
+/* Signup / Login */
 function doSignup(){
   const u = document.getElementById('suUser').value.trim();
-  const ph = document.getElementById('suPhone').value.trim();
   const p = document.getElementById('suPass').value;
-  if(!u||!ph||!p){ document.getElementById('suMsg').innerText='Fill all fields'; return; }
+  if(!u||!p){ document.getElementById('suMsg').innerText='Fill all fields'; return; }
   if(DB.users[u]){ document.getElementById('suMsg').innerText='Username exists'; return; }
-  DB.users[u] = { username:u, phone:ph, pass:p, balance:0, totalFunded:0, shares:[] };
+  DB.users[u] = { username:u, pass:p, balance:0, totalFunded:0, shares:[] };
   saveDB(DB);
   document.getElementById('suMsg').innerText='Account created. Please sign in.';
-  document.getElementById('suUser').value=''; document.getElementById('suPhone').value=''; document.getElementById('suPass').value='';
+  document.getElementById('suUser').value=''; document.getElementById('suPass').value='';
   showLogin();
 }
 function doLogin(){
@@ -242,10 +242,10 @@ function onLogin(){
   renderPendingForUser();
 }
 
-/* Logout */
+/* logout */
 function doLogout(){ clearSession(); location.reload(); }
 
-/* Shares data (15 shares) */
+/* Shares list (15) */
 const SHARES = [
   {label:'Agriculture', cost:10000, payout:50000, days:26, img:'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=400&q=60'},
   {label:'Solar Energy', cost:20000, payout:120000, days:45, img:'https://images.unsplash.com/photo-1509395062183-67c5ad6faff9?auto=format&fit=crop&w=400&q=60'},
@@ -285,7 +285,7 @@ function renderShares(){
   });
 }
 
-/* attempt buy */
+/* BUY */
 function attemptBuy(index){
   if(!currentUser){ alert('Please sign in to buy.'); return; }
   const pack = SHARES[index];
@@ -297,7 +297,7 @@ function attemptBuy(index){
     return;
   }
   user.balance = (user.balance||0) - pack.cost;
-  if(!user.shares) user.shares = [];
+  user.shares = user.shares || [];
   user.shares.push({package:pack.label,cost:pack.cost,payout:pack.payout,createdAt:new Date().toISOString()});
   DB.users[currentUser] = user;
   saveDB(DB);
@@ -306,7 +306,7 @@ function attemptBuy(index){
   renderProfile();
 }
 
-/* funding: create pending tx */
+/* FUND: create pending tx */
 function createPending(){
   if(!currentUser){ alert('Please sign in'); return; }
   const amt = Number(document.getElementById('fundAmount').value || 0);
@@ -332,7 +332,7 @@ function renderPendingForUser(){
   }
 }
 
-/* admin confirm helper (called by admin page if in same browser) */
+/* adminConfirmTransaction called by admin.html */
 function adminConfirmTransaction(txId){
   const idx = DB.transactions.findIndex(t=>t.id===txId);
   if(idx === -1) return false;
@@ -347,12 +347,8 @@ function adminConfirmTransaction(txId){
   DB.transactions[idx].status = 'confirmed';
   DB.transactions[idx].confirmedAt = new Date().toISOString();
   saveDB(DB);
-  // update pendingTransactions legacy key
-  let legacy = JSON.parse(localStorage.getItem('pendingTransactions')||'[]');
-  legacy = legacy.filter(p=>p.id!==txId);
-  localStorage.setItem('pendingTransactions', JSON.stringify(legacy));
-  localStorage.setItem('users', JSON.stringify(DB.users));
-  if(currentUser === tx.username) {
+  // update UI for logged-in user
+  if(currentUser === tx.username){
     updateBalanceUI();
     renderPendingForUser();
     renderProfile();
@@ -366,41 +362,38 @@ function updateBalanceUI(){
   if(!currentUser) return;
   const user = DB.users[currentUser];
   document.getElementById('topBalance').innerText = (user.balance||0).toFixed(2);
-  document.getElementById('balance').innerText = (user.balance||0).toFixed(2);
+  document.getElementById('balance') && (document.getElementById('balance').innerText = (user.balance||0).toFixed(2));
 }
-/* profile */
+
+/* profile rendering */
 function renderProfile(){
   if(!currentUser) return;
   const u = DB.users[currentUser];
   const container = document.getElementById('profileInfo');
   container.innerHTML = `
     <div class="small">Username: <strong>${u.username}</strong></div>
-    <div class="small">Phone: <strong>${u.phone}</strong></div>
     <div class="small">Current balance: ₦${(u.balance||0).toLocaleString()}</div>
     <div class="small">Total funded: ₦${(u.totalFunded||0).toLocaleString()}</div>
     <div class="small">Shares owned: ${ (u.shares||[]).length }</div>
   `;
-  // transaction history
   const txs = DB.transactions.filter(t=>t.username===currentUser).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
   const list = document.getElementById('txHistory');
   if(!txs.length){ list.innerHTML = '<div class="small">No transactions yet.</div>'; return; }
   list.innerHTML = txs.map(t=>`<div class="tx-item">₦${t.amount.toLocaleString()} — ${t.status} — ${new Date(t.createdAt).toLocaleString()}</div>`).join('');
 }
 
-/* helper clear fund form */
+/* utility */
 function clearFundForm(){ document.getElementById('fundAmount').value=''; document.getElementById('fundRef').value=''; document.getElementById('fundMsg').innerText=''; }
 
-/* save & initial UI */
+/* save DB immediately (ensures legacy keys exist) */
 saveDB(DB);
+
+/* initial UI state */
 if(currentUser){
   onLogin();
 } else {
   document.getElementById('authCard').classList.remove('hidden');
 }
-
-/* make sure admin.html compatibility: ensure legacy keys exist */
-localStorage.setItem('pendingTransactions', JSON.stringify(DB.transactions.filter(t=>t.status==='pending')));
-localStorage.setItem('users', JSON.stringify(DB.users));
 </script>
 </body>
-  </html>
+        </html>
