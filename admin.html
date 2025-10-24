@@ -13,6 +13,10 @@
   button.reject{background:#ef4444;color:#fff;border:0;padding:8px 10px;border-radius:8px;cursor:pointer}
   .small{font-size:13px;color:#6b7280}
   .tx-row{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;background:#fff;margin-bottom:8px;border:1px solid #eef2f5}
+  .tabs{display:flex;gap:8px;margin-bottom:8px}
+  .tab{padding:8px 12px;border-radius:8px;border:1px solid #e6edf0;background:#fff;cursor:pointer}
+  .tab.active{background:linear-gradient(90deg,#e6fff1,#dffbf4)}
+  .section-title{font-weight:800;margin-bottom:6px}
 </style>
 </head>
 <body>
@@ -29,19 +33,47 @@
 
   <div id="adminArea" class="hidden">
     <div class="card" style="display:flex;justify-content:space-between;align-items:center">
-      <div><strong>Pending Transactions</strong><div class="small">Only transactions created in this browser are shown</div></div>
-      <div><button onclick="adminSignOut()">Sign out</button></div>
+      <div>
+        <strong>Dashboard</strong>
+        <div class="small">Approve funding and withdrawal requests</div>
+      </div>
+      <div>
+        <button onclick="adminSignOut()">Sign out</button>
+      </div>
     </div>
 
-    <div id="pendingList" class="card small">Loading pending transactions...</div>
+    <div class="card">
+      <div class="tabs">
+        <div id="tabFunds" class="tab active" onclick="showAdminTab('funds')">Funding</div>
+        <div id="tabWithdrawals" class="tab" onclick="showAdminTab('withdrawals')">Withdrawals</div>
+        <div id="tabAll" class="tab" onclick="showAdminTab('all')">All</div>
+      </div>
+
+      <div id="adminContent">
+        <div id="fundsSection">
+          <div class="section-title">Pending Funding Requests</div>
+          <div id="fundsList" class="small">Loading...</div>
+        </div>
+        <div id="withdrawalsSection" style="display:none">
+          <div class="section-title">Pending Withdrawals</div>
+          <div id="withdrawalsList" class="small">Loading...</div>
+        </div>
+        <div id="allSection" style="display:none">
+          <div class="section-title">All Pending</div>
+          <div id="allList" class="small">Loading...</div>
+        </div>
+      </div>
+    </div>
 
     <div class="card">
       <h3>Confirm by Transaction ID</h3>
-      <p class="small">If user sends tx id, paste here to confirm</p>
+      <p class="small">If user sends tx id, paste here to confirm or reject</p>
       <input id="txIdInput" placeholder="tx_..."><br><br>
       <button class="primary" onclick="confirmById()">Confirm tx by ID</button>
+      <button class="reject" style="margin-left:8px" onclick="rejectById()">Reject tx by ID</button>
       <div id="manualMsg" class="small" style="margin-top:8px"></div>
     </div>
+
   </div>
 
 <script>
@@ -50,33 +82,49 @@ const ADMIN_PASS = 'PrimeVest';
 const STORAGE_KEY = 'primevest_local_db';
 
 function loadDB(){ try{ const s = localStorage.getItem(STORAGE_KEY); return s?JSON.parse(s):{users:{},transactions:[]}; }catch(e){return {users:{},transactions:[]}; } }
-function saveDB(db){ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); localStorage.setItem('pendingTransactions', JSON.stringify(db.transactions.filter(t=>t.status==='pending'))); localStorage.setItem('users', JSON.stringify(db.users)); }
+function saveDB(db){ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); localStorage.setItem('pendingTransactions', JSON.stringify(db.transactions.filter(t=>t.status==='pending' && t.type==='fund'))); localStorage.setItem('users', JSON.stringify(db.users)); }
 
+/* admin UI */
 function adminLogin(){
   const u = document.getElementById('adUser').value.trim();
   const p = document.getElementById('adPass').value;
   if(u === ADMIN_USER && p === ADMIN_PASS){
     document.getElementById('loginCard').classList.add('hidden');
     document.getElementById('adminArea').classList.remove('hidden');
-    renderPending();
+    renderAll();
   } else {
     document.getElementById('adMsg').innerText = 'Invalid admin credentials';
   }
 }
-
 function adminSignOut(){ location.reload(); }
 
-function renderPending(){
+/* tabs */
+function showAdminTab(t){
+  document.getElementById('tabFunds').classList.remove('active');
+  document.getElementById('tabWithdrawals').classList.remove('active');
+  document.getElementById('tabAll').classList.remove('active');
+  document.getElementById('fundsSection').style.display = 'none';
+  document.getElementById('withdrawalsSection').style.display = 'none';
+  document.getElementById('allSection').style.display = 'none';
+  if(t==='funds'){ document.getElementById('tabFunds').classList.add('active'); document.getElementById('fundsSection').style.display='block'; }
+  if(t==='withdrawals'){ document.getElementById('tabWithdrawals').classList.add('active'); document.getElementById('withdrawalsSection').style.display='block'; }
+  if(t==='all'){ document.getElementById('tabAll').classList.add('active'); document.getElementById('allSection').style.display='block'; }
+}
+
+/* render pending lists */
+function renderAll(){
   const DB = loadDB();
-  const pending = DB.transactions.filter(t=>t.status==='pending').sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  const container = document.getElementById('pendingList');
-  if(!pending.length){ container.innerHTML = '<div class="small">No pending transactions in this browser.</div>'; return; }
-  container.innerHTML = '';
-  pending.forEach(tx=>{
+  const funds = DB.transactions.filter(t=>t.type==='fund' && t.status==='pending').sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const withdrawals = DB.transactions.filter(t=>t.type==='withdraw' && t.status==='pending').sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const fundsList = document.getElementById('fundsList');
+  const withdrawalsList = document.getElementById('withdrawalsList');
+  const allList = document.getElementById('allList');
+
+  fundsList.innerHTML = funds.length ? '' : '<div class="small">No pending funding requests.</div>';
+  funds.forEach(tx=>{
     const div = document.createElement('div');
     div.className = 'tx-row';
-    div.innerHTML = `
-      <div>
+    div.innerHTML = `<div>
         <div style="font-weight:800">₦${tx.amount.toLocaleString()}</div>
         <div class="small">User: ${tx.username}</div>
         <div class="small">Ref: ${tx.reference || '—'}</div>
@@ -85,59 +133,121 @@ function renderPending(){
       <div style="text-align:right">
         <button class="primary" onclick="confirmTx('${tx.id}')">Confirm</button>
         <button class="reject" onclick="rejectTx('${tx.id}')">Reject</button>
+      </div>`;
+    fundsList.appendChild(div);
+  });
+
+  withdrawalsList.innerHTML = withdrawals.length ? '' : '<div class="small">No pending withdrawals.</div>';
+  withdrawals.forEach(tx=>{
+    const div = document.createElement('div');
+    div.className = 'tx-row';
+    div.innerHTML = `<div>
+        <div style="font-weight:800">₦${tx.amount.toLocaleString()}</div>
+        <div class="small">User: ${tx.username}</div>
+        <div class="small">Bank: ${tx.bank} • ${tx.accountNumber}</div>
+        <div class="small">ID: ${tx.id}</div>
       </div>
-    `;
-    container.appendChild(div);
+      <div style="text-align:right">
+        <button class="primary" onclick="confirmTx('${tx.id}')">Confirm</button>
+        <button class="reject" onclick="rejectTx('${tx.id}')">Reject</button>
+      </div>`;
+    withdrawalsList.appendChild(div);
+  });
+
+  // all pending combined
+  allList.innerHTML = '';
+  const combined = funds.concat(withdrawals).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  if(!combined.length) allList.innerHTML = '<div class="small">No pending transactions.</div>';
+  combined.forEach(tx=>{
+    const div = document.createElement('div');
+    div.className = 'tx-row';
+    let left = `<div><div style="font-weight:800">₦${tx.amount.toLocaleString()}</div><div class="small">User: ${tx.username}</div><div class="small">Type: ${tx.type}</div><div class="small">ID: ${tx.id}</div></div>`;
+    div.innerHTML = `${left}<div style="text-align:right"><button class="primary" onclick="confirmTx('${tx.id}')">Confirm</button><button class="reject" onclick="rejectTx('${tx.id}')">Reject</button></div>`;
+    allList.appendChild(div);
   });
 }
 
+/* confirm tx */
 function confirmTx(txId){
   const DB = loadDB();
   const idx = DB.transactions.findIndex(t=>t.id===txId);
   if(idx === -1){ alert('Transaction not found'); return; }
   const tx = DB.transactions[idx];
-  if(tx.status !== 'pending'){ alert('Not pending'); renderPending(); return; }
-  const user = DB.users[tx.username];
-  if(!user){ alert('User not found locally'); return; }
-  user.balance = (user.balance || 0) + tx.amount;
-  user.totalFunded = (user.totalFunded || 0) + tx.amount;
-  user.fundCount = (user.fundCount || 0) + 1;
-  DB.users[tx.username] = user;
-  DB.transactions[idx].status = 'confirmed';
-  DB.transactions[idx].confirmedAt = new Date().toISOString();
-  saveDB(DB);
-  alert('Transaction confirmed and local balance updated.');
-  renderPending();
+  if(tx.status !== 'pending'){ alert('Not pending'); renderAll(); return; }
+  if(tx.type === 'fund'){
+    // credit user
+    const user = DB.users[tx.username];
+    if(!user){ alert('User not found locally'); return; }
+    user.balance = (user.balance||0) + tx.amount;
+    user.totalFunded = (user.totalFunded||0) + tx.amount;
+    DB.users[tx.username] = user;
+    DB.transactions[idx].status = 'confirmed';
+    DB.transactions[idx].confirmedAt = new Date().toISOString();
+    saveDB(DB);
+    alert('Fund confirmed — balance updated locally.');
+    renderAll();
+    return;
+  } else if(tx.type === 'withdraw'){
+    // withdrawal confirmed (fund already deducted at request)
+    DB.transactions[idx].status = 'confirmed';
+    DB.transactions[idx].confirmedAt = new Date().toISOString();
+    saveDB(DB);
+    alert('Withdrawal confirmed (marked completed).');
+    renderAll();
+    return;
+  }
 }
 
+/* reject tx */
 function rejectTx(txId){
   const DB = loadDB();
   const idx = DB.transactions.findIndex(t=>t.id===txId);
-  if(idx === -1){ alert('Not found'); return; }
-  DB.transactions[idx].status = 'rejected';
-  DB.transactions[idx].rejectedAt = new Date().toISOString();
-  saveDB(DB);
-  renderPending();
+  if(idx === -1){ alert('Transaction not found'); return; }
+  const tx = DB.transactions[idx];
+  if(tx.status !== 'pending'){ alert('Not pending'); renderAll(); return; }
+  if(tx.type === 'fund'){
+    DB.transactions[idx].status = 'rejected';
+    DB.transactions[idx].rejectedAt = new Date().toISOString();
+    saveDB(DB);
+    alert('Funding rejected.');
+    renderAll();
+    return;
+  } else if(tx.type === 'withdraw'){
+    // refund the amount to user
+    const user = DB.users[tx.username];
+    if(!user){ alert('User not found locally'); return; }
+    user.balance = (user.balance||0) + tx.amount;
+    DB.users[tx.username] = user;
+    DB.transactions[idx].status = 'rejected';
+    DB.transactions[idx].rejectedAt = new Date().toISOString();
+    saveDB(DB);
+    alert('Withdrawal rejected. Amount refunded to user (local).');
+    renderAll();
+    return;
+  }
 }
 
+/* confirm/reject by ID */
 function confirmById(){
   const id = document.getElementById('txIdInput').value.trim();
-  if(!id){ document.getElementById('manualMsg').innerText = 'Enter a tx id'; return; }
+  if(!id){ document.getElementById('manualMsg').innerText='Enter tx id'; return; }
   const DB = loadDB();
   const idx = DB.transactions.findIndex(t=>t.id===id);
-  if(idx === -1){ document.getElementById('manualMsg').innerText = 'Not found'; return; }
-  if(DB.transactions[idx].status !== 'pending'){ document.getElementById('manualMsg').innerText = 'Not pending'; return; }
-  const tx = DB.transactions[idx];
-  if(!DB.users[tx.username]){ document.getElementById('manualMsg').innerText = 'User not found locally'; return; }
-  DB.users[tx.username].balance = (DB.users[tx.username].balance||0) + tx.amount;
-  DB.users[tx.username].totalFunded = (DB.users[tx.username].totalFunded||0) + tx.amount;
-  DB.users[tx.username].fundCount = (DB.users[tx.username].fundCount||0) + 1;
-  DB.transactions[idx].status = 'confirmed';
-  DB.transactions[idx].confirmedAt = new Date().toISOString();
-  saveDB(DB);
-  document.getElementById('manualMsg').innerText = 'Confirmed.';
-  renderPending();
+  if(idx === -1){ document.getElementById('manualMsg').innerText='Not found'; return; }
+  document.getElementById('manualMsg').innerText = '';
+  confirmTx(id);
 }
+function rejectById(){
+  const id = document.getElementById('txIdInput').value.trim();
+  if(!id){ document.getElementById('manualMsg').innerText='Enter tx id'; return; }
+  const DB = loadDB();
+  const idx = DB.transactions.findIndex(t=>t.id===id);
+  if(idx === -1){ document.getElementById('manualMsg').innerText='Not found'; return; }
+  document.getElementById('manualMsg').innerText = '';
+  rejectTx(id);
+}
+
+/* initial render when admin signs in */
 </script>
 </body>
 </html>
