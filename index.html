@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>PrimeVest — Mobile</title>
+<title>PrimeVest INC — Mobile</title>
 <style>
   :root{--bg:#ffffff;--card:#f7f8fa;--text:#0b1220;--muted:#6b7280;--green:#059669;--gold:#d4af37}
   *{box-sizing:border-box}
@@ -12,7 +12,7 @@
   .logo{display:flex;align-items:center;gap:10px}
   .badge{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#34d399,#059669);color:#fff;font-weight:800}
   .balance-box{padding:6px 10px;border-radius:12px;background:#f0fff6;border:1px solid #e6fffb;color:var(--green);font-weight:800}
-  main{padding:14px;padding-bottom:130px}
+  main{padding:14px;padding-bottom:160px}
   .card{background:var(--card);padding:12px;border-radius:12px;margin-bottom:12px;box-shadow:0 6px 18px rgba(12,20,24,0.03)}
   h2{margin:0 0 8px;font-size:18px}
   p.mute{color:var(--muted);font-size:13px;margin:6px 0}
@@ -40,29 +40,32 @@
   /* tx history */
   .tx-list{padding-left:14px;margin-top:8px}
   .tx-item{margin-bottom:6px;font-size:13px}
+  .shares-table{width:100%;border-collapse:collapse;margin-top:8px}
+  .shares-table th, .shares-table td{padding:8px;border-bottom:1px solid #eee;text-align:left;font-size:13px}
+  .withdraw-card input{margin-bottom:8px}
   @media(min-width:720px){body{max-width:420px;margin:0 auto}}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo"><div class="badge">PV</div><div class="brand">PrimeVest</div></div>
-  <!-- balance hidden until login -->
+  <div class="logo"><div class="badge" id="logoBadge">PV</div><div class="brand">PrimeVest</div></div>
   <div id="topBalanceBox" class="balance-box hidden">₦ <span id="topBalance">0.00</span></div>
 </header>
 
-<main>
+<main id="main">
 
-  <!-- AUTH card -->
+  <!-- AUTH CARD -->
   <div id="authCard" class="card">
     <h2>Welcome to PrimeVest</h2>
-    <p class="mute">Secure. Simple. Smart investing — demo (local only).</p>
+    <p class="mute">Secure. Simple. Smart investing — demo local-only.</p>
 
     <div id="signedOutActions">
       <button class="primary" onclick="showSignup()">Sign up</button>
       <button class="ghost" onclick="showLogin()">Sign in</button>
     </div>
 
+    <!-- SIGNUP -->
     <div id="signupForm" class="hidden" style="margin-top:12px">
       <input id="suUser" placeholder="Create username">
       <input id="suPass" type="password" placeholder="Password">
@@ -73,6 +76,7 @@
       <div id="suMsg" class="small"></div>
     </div>
 
+    <!-- LOGIN -->
     <div id="loginForm" class="hidden" style="margin-top:12px">
       <input id="liUser" placeholder="Username">
       <input id="liPass" type="password" placeholder="Password">
@@ -91,7 +95,7 @@
       <div>
         <h2>PrimeVest INC</h2>
         <p class="small">We bring curated investment products for everyday investors. Join our community and invest in real projects.</p>
-        <div style="margin-top:8px" class="join-cta">Join our community — trusted investors and opportunities</div>
+        <div style="margin-top:8px" class="join-cta">Join our community — trusted investors and verified opportunities</div>
       </div>
     </div>
 
@@ -116,7 +120,7 @@
     <div class="shares-grid" id="sharesGrid" style="margin-top:12px"></div>
   </div>
 
-  <!-- FUND -->
+  <!-- FUNDING -->
   <div id="fundCard" class="card hidden">
     <h2>Fund your account</h2>
     <p class="small">Minimum ₦1,500. Transfer to the account below then confirm your payment.</p>
@@ -150,6 +154,29 @@
     <div id="profileInfo"></div>
 
     <div style="margin-top:10px">
+      <div class="small">Shares Bought</div>
+      <table class="shares-table" id="sharesTable">
+        <thead>
+          <tr><th>Share</th><th>Amount</th><th>Duration</th><th>Days left</th><th>Status</th></tr>
+        </thead>
+        <tbody id="sharesTbody"></tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:12px" class="card withdraw-card">
+      <h3>Withdraw</h3>
+      <p class="small">Withdraw (demo). Enter account details and amount.</p>
+      <input id="wdName" placeholder="Account name">
+      <input id="wdBank" placeholder="Bank name">
+      <input id="wdAccount" placeholder="Account number">
+      <input id="wdAmount" type="number" placeholder="Amount to withdraw (₦)">
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="primary" onclick="requestWithdrawal()">Withdraw</button>
+      </div>
+      <div id="wdMsg" class="small" style="margin-top:8px"></div>
+    </div>
+
+    <div style="margin-top:12px">
       <div class="small">Transaction history</div>
       <div id="txHistory" class="tx-list"></div>
     </div>
@@ -169,15 +196,18 @@
 </nav>
 
 <script>
-/*
-Local DB key: primevest_local_db
-Structure:
-{ users: { username: { username, pass, balance, totalFunded, shares:[] } }, transactions: [ {id,username,amount,reference,status,createdAt,...} ] }
+/* Local DB structure (single key)
+  primevest_local_db = {
+    users: { username: { username, pass, balance, totalFunded, shares:[], withdrawals:[] } },
+    transactions: [ { id, type:'fund'|'withdraw', username, amount, reference, bankInfo?, status:'pending'|'confirmed'|'rejected', createdAt, ... } ]
+  }
 */
 const STORAGE_KEY = 'primevest_local_db';
-function loadDB(){ try{ const s=localStorage.getItem(STORAGE_KEY); return s?JSON.parse(s):{users:{},transactions:[]}; }catch(e){return {users:{},transactions:[]}; } }
-function saveDB(db){ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); // keep legacy keys for older admin.html compatibility
-  localStorage.setItem('pendingTransactions', JSON.stringify(db.transactions.filter(t=>t.status==='pending')));
+function loadDB(){ try{ const s = localStorage.getItem(STORAGE_KEY); return s?JSON.parse(s):{users:{},transactions:[]}; }catch(e){return {users:{},transactions:[]}; } }
+function saveDB(db){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+  // keep legacy keys for older admin compatibility
+  localStorage.setItem('pendingTransactions', JSON.stringify(db.transactions.filter(t=>t.status==='pending' && t.type==='fund')));
   localStorage.setItem('users', JSON.stringify(db.users));
 }
 let DB = loadDB();
@@ -191,7 +221,7 @@ function showTab(tab){
   if(tab==='home') show('home');
   if(tab==='buy'){ renderShares(); show('buy'); }
   if(tab==='fund') show('fund');
-  if(tab==='profile') show('profile');
+  if(tab==='profile') { renderProfile(); show('profile'); }
 }
 
 /* Auth forms */
@@ -208,13 +238,13 @@ function clearSession(){ currentUser = null; localStorage.removeItem('primevest_
 const savedSession = localStorage.getItem('primevest_session');
 if(savedSession && DB.users[savedSession]) { setSession(savedSession); onLogin(); }
 
-/* Signup / Login */
+/* Signup/Login */
 function doSignup(){
   const u = document.getElementById('suUser').value.trim();
   const p = document.getElementById('suPass').value;
   if(!u||!p){ document.getElementById('suMsg').innerText='Fill all fields'; return; }
   if(DB.users[u]){ document.getElementById('suMsg').innerText='Username exists'; return; }
-  DB.users[u] = { username:u, pass:p, balance:0, totalFunded:0, shares:[] };
+  DB.users[u] = { username:u, pass:p, balance:0, totalFunded:0, shares:[], withdrawals:[] };
   saveDB(DB);
   document.getElementById('suMsg').innerText='Account created. Please sign in.';
   document.getElementById('suUser').value=''; document.getElementById('suPass').value='';
@@ -245,23 +275,23 @@ function onLogin(){
 /* logout */
 function doLogout(){ clearSession(); location.reload(); }
 
-/* Shares list (15) */
+/* Shares list */
 const SHARES = [
-  {label:'Agriculture', cost:10000, payout:50000, days:26, img:'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=400&q=60'},
-  {label:'Solar Energy', cost:20000, payout:120000, days:45, img:'https://images.unsplash.com/photo-1509395062183-67c5ad6faff9?auto=format&fit=crop&w=400&q=60'},
-  {label:'Water Resources', cost:5000, payout:20000, days:18, img:'https://images.unsplash.com/photo-1504198453319-5ce911bafcde?auto=format&fit=crop&w=400&q=60'},
-  {label:'Real Estate', cost:25000, payout:150000, days:120, img:'https://images.unsplash.com/photo-1572120360610-d971b9b1b9b6?auto=format&fit=crop&w=400&q=60'},
-  {label:'Technology', cost:15000, payout:80000, days:60, img:'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=400&q=60'},
-  {label:'Healthcare', cost:8000, payout:35000, days:40, img:'https://images.unsplash.com/photo-1581093588401-8a3a7b2f1fda?auto=format&fit=crop&w=400&q=60'},
-  {label:'Education', cost:7000, payout:30000, days:30, img:'https://images.unsplash.com/photo-1584697964151-1f5d3d1f8d6b?auto=format&fit=crop&w=400&q=60'},
-  {label:'Transport', cost:12000, payout:60000, days:50, img:'https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=400&q=60'},
-  {label:'Manufacturing', cost:30000, payout:250000, days:90, img:'https://images.unsplash.com/photo-1543168258-4b5f30e5b8b0?auto=format&fit=crop&w=400&q=60'},
-  {label:'Fintech', cost:9000, payout:45000, days:28, img:'https://images.unsplash.com/photo-1559526324-593bc073d938?auto=format&fit=crop&w=400&q=60'},
-  {label:'Logistics', cost:6000, payout:28000, days:22, img:'https://images.unsplash.com/photo-1517148815978-75f6acaaff06?auto=format&fit=crop&w=400&q=60'},
-  {label:'Tourism', cost:4000, payout:15000, days:20, img:'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=60'},
-  {label:'Agri-Tech', cost:11000, payout:55000, days:35, img:'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=400&q=60'},
-  {label:'Energy Storage', cost:22000, payout:130000, days:75, img:'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=400&q=60'},
-  {label:'Enterprise', cost:100000, payout:1000000, days:365, img:'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=400&q=60'}
+  {label:'Agriculture', cost:10000, payout:50000, days:26, img:'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=600&q=60'},
+  {label:'Solar Energy', cost:20000, payout:120000, days:45, img:'https://images.unsplash.com/photo-1509395062183-67c5ad6faff9?auto=format&fit=crop&w=600&q=60'},
+  {label:'Water Resources', cost:5000, payout:20000, days:18, img:'https://images.unsplash.com/photo-1504198453319-5ce911bafcde?auto=format&fit=crop&w=600&q=60'},
+  {label:'Real Estate', cost:25000, payout:150000, days:120, img:'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=600&q=60'},
+  {label:'Technology', cost:15000, payout:80000, days:60, img:'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=60'},
+  {label:'Healthcare', cost:8000, payout:35000, days:40, img:'https://images.unsplash.com/photo-1588776814546-76bc5d1f2e8f?auto=format&fit=crop&w=600&q=60'},
+  {label:'Education', cost:7000, payout:30000, days:30, img:'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=600&q=60'},
+  {label:'Transport', cost:12000, payout:60000, days:50, img:'https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=600&q=60'},
+  {label:'Manufacturing', cost:30000, payout:250000, days:90, img:'https://images.unsplash.com/photo-1543168258-4b5f30e5b8b0?auto=format&fit=crop&w=600&q=60'},
+  {label:'Fintech', cost:9000, payout:45000, days:28, img:'https://images.unsplash.com/photo-1559526324-593bc073d938?auto=format&fit=crop&w=600&q=60'},
+  {label:'Logistics', cost:6000, payout:28000, days:22, img:'https://images.unsplash.com/photo-1517148815978-75f6acaaff06?auto=format&fit=crop&w=600&q=60'},
+  {label:'Tourism', cost:4000, payout:15000, days:20, img:'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=600&q=60'},
+  {label:'Agri-Tech', cost:11000, payout:55000, days:35, img:'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=600&q=60'},
+  {label:'Energy Storage', cost:22000, payout:130000, days:75, img:'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=60'},
+  {label:'Enterprise', cost:100000, payout:1000000, days:365, img:'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=600&q=60'}
 ];
 
 function renderShares(){
@@ -296,35 +326,41 @@ function attemptBuy(index){
     showTab('fund');
     return;
   }
+  // deduct immediately and save share with start date
   user.balance = (user.balance||0) - pack.cost;
   user.shares = user.shares || [];
-  user.shares.push({package:pack.label,cost:pack.cost,payout:pack.payout,createdAt:new Date().toISOString()});
+  user.shares.push({
+    package: pack.label,
+    cost: pack.cost,
+    payout: pack.payout,
+    durationDays: pack.days,
+    startDate: new Date().toISOString()
+  });
   DB.users[currentUser] = user;
   saveDB(DB);
-  alert('Purchase successful');
+  alert('Purchase successful. Your share is active.');
   updateBalanceUI();
   renderProfile();
 }
 
-/* FUND: create pending tx */
+/* FUND: create pending funding transaction */
 function createPending(){
   if(!currentUser){ alert('Please sign in'); return; }
   const amt = Number(document.getElementById('fundAmount').value || 0);
   const ref = document.getElementById('fundRef').value.trim();
   if(!amt || amt < 1500){ document.getElementById('fundMsg').innerText = 'Minimum funding amount is ₦1,500.'; return; }
-  const tx = { id: 'tx_'+Date.now(), username: currentUser, amount: Math.round(amt), reference: ref||null, status:'pending', createdAt: new Date().toISOString() };
+  const tx = { id: 'tx_'+Date.now(), type:'fund', username: currentUser, amount: Math.round(amt), reference: ref||null, status:'pending', createdAt: new Date().toISOString() };
   DB.transactions.push(tx);
-  DB.users[currentUser] = DB.users[currentUser]; // ensure user exists
   saveDB(DB);
   document.getElementById('fundMsg').innerText = 'Transaction recorded and is pending confirmation.';
   document.getElementById('fundAmount').value=''; document.getElementById('fundRef').value='';
   renderPendingForUser();
 }
 
-/* show user's pending tx */
+/* Show user's latest pending tx */
 function renderPendingForUser(){
   if(!currentUser) return;
-  const tx = DB.transactions.filter(t=>t.username===currentUser).reverse()[0];
+  const tx = DB.transactions.filter(t=>t.username===currentUser && t.type==='fund').reverse()[0];
   if(tx && tx.status==='pending'){
     document.getElementById('userPending').innerText = `Pending Confirmation — tx id: ${tx.id}`;
   } else {
@@ -332,68 +368,47 @@ function renderPendingForUser(){
   }
 }
 
-/* adminConfirmTransaction called by admin.html */
+/* Withdrawal request (creates a withdrawal transaction)
+   - Validate amount <= balance
+   - Deduct amount immediately (lock funds)
+   - Create transaction of type 'withdraw' with status 'pending'
+*/
+function requestWithdrawal(){
+  if(!currentUser){ alert('Please sign in'); return; }
+  const acctName = document.getElementById('wdName').value.trim();
+  const bank = document.getElementById('wdBank').value.trim();
+  const acctNo = document.getElementById('wdAccount').value.trim();
+  const amt = Number(document.getElementById('wdAmount').value || 0);
+  if(!acctName || !bank || !acctNo || !amt){ document.getElementById('wdMsg').innerText='Fill all fields'; return; }
+  const user = DB.users[currentUser];
+  if((user.balance||0) < amt){ document.getElementById('wdMsg').innerText='Insufficient balance'; return; }
+  // deduct immediately (funds locked). If admin rejects, we will refund.
+  user.balance = (user.balance||0) - amt;
+  DB.users[currentUser] = user;
+  const tx = { id:'wd_'+Date.now(), type:'withdraw', username:currentUser, amount:Math.round(amt), accountName:acctName, bank:bank, accountNumber:acctNo, status:'pending', createdAt:new Date().toISOString() };
+  DB.transactions.push(tx);
+  saveDB(DB);
+  document.getElementById('wdMsg').innerText = 'Withdrawal requested — pending admin confirmation.';
+  // clear inputs
+  document.getElementById('wdName').value=''; document.getElementById('wdBank').value=''; document.getElementById('wdAccount').value=''; document.getElementById('wdAmount').value='';
+  updateBalanceUI();
+  renderProfile();
+}
+
+/* adminConfirmTransaction will be used by admin.html if admin confirms a fund or by id */
 function adminConfirmTransaction(txId){
   const idx = DB.transactions.findIndex(t=>t.id===txId);
   if(idx === -1) return false;
   const tx = DB.transactions[idx];
   if(tx.status !== 'pending') return false;
-  const user = DB.users[tx.username];
-  if(!user) return false;
-  user.balance = (user.balance||0) + tx.amount;
-  user.totalFunded = (user.totalFunded||0) + tx.amount;
-  user.fundCount = (user.fundCount||0) + 1;
-  DB.users[tx.username] = user;
-  DB.transactions[idx].status = 'confirmed';
-  DB.transactions[idx].confirmedAt = new Date().toISOString();
-  saveDB(DB);
-  // update UI for logged-in user
-  if(currentUser === tx.username){
-    updateBalanceUI();
-    renderPendingForUser();
-    renderProfile();
-  }
-  return true;
-}
-window.adminConfirmTransaction = adminConfirmTransaction;
-
-/* update UI & profile */
-function updateBalanceUI(){
-  if(!currentUser) return;
-  const user = DB.users[currentUser];
-  document.getElementById('topBalance').innerText = (user.balance||0).toFixed(2);
-  document.getElementById('balance') && (document.getElementById('balance').innerText = (user.balance||0).toFixed(2));
-}
-
-/* profile rendering */
-function renderProfile(){
-  if(!currentUser) return;
-  const u = DB.users[currentUser];
-  const container = document.getElementById('profileInfo');
-  container.innerHTML = `
-    <div class="small">Username: <strong>${u.username}</strong></div>
-    <div class="small">Current balance: ₦${(u.balance||0).toLocaleString()}</div>
-    <div class="small">Total funded: ₦${(u.totalFunded||0).toLocaleString()}</div>
-    <div class="small">Shares owned: ${ (u.shares||[]).length }</div>
-  `;
-  const txs = DB.transactions.filter(t=>t.username===currentUser).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  const list = document.getElementById('txHistory');
-  if(!txs.length){ list.innerHTML = '<div class="small">No transactions yet.</div>'; return; }
-  list.innerHTML = txs.map(t=>`<div class="tx-item">₦${t.amount.toLocaleString()} — ${t.status} — ${new Date(t.createdAt).toLocaleString()}</div>`).join('');
-}
-
-/* utility */
-function clearFundForm(){ document.getElementById('fundAmount').value=''; document.getElementById('fundRef').value=''; document.getElementById('fundMsg').innerText=''; }
-
-/* save DB immediately (ensures legacy keys exist) */
-saveDB(DB);
-
-/* initial UI state */
-if(currentUser){
-  onLogin();
-} else {
-  document.getElementById('authCard').classList.remove('hidden');
-}
-</script>
-</body>
-        </html>
+  if(tx.type === 'fund'){
+    // credit user's balance
+    const user = DB.users[tx.username];
+    if(!user) return false;
+    user.balance = (user.balance||0) + tx.amount;
+    user.totalFunded = (user.totalFunded||0) + tx.amount;
+    DB.users[tx.username] = user;
+    DB.transactions[idx].status = 'confirmed';
+    DB.transactions[idx].confirmedAt = new Date().toISOString();
+    saveDB(DB);
+    // update U
