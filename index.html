@@ -63,32 +63,42 @@
     <div id="signedOutActions">
       <button class="primary" onclick="showSignup()">Sign up</button>
       <button class="ghost" onclick="showLogin()">Sign in</button>
-    </div>
+    </div>l
 
-    <!-- SIGNUP -->
-    <div id="signupForm" class="hidden" style="margin-top:12px">
-      <input id="suUser" placeholder="Create username">
-      <input id="suPass" type="password" placeholder="Password">
-      <div sfunction loginUser() {
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
+   <!-- SIGNUP -->
+<div id="signupForm" class="hidden" style="margin-top:12px">
+  <input id="suUser" placeholder="Create username">
+  <input id="suPass" type="password" placeholder="Password">
+  <button id="signupBtn">Sign Up</button>
+  <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+</div>
 
-    if (!username || !password) {
-        alert("Please enter your username and password.");
-        return;
-    }
-
-    const storedUser = localStorage.getItem(username);
-    if (storedUser && JSON.parse(storedUser).password === password) {
-        localStorage.setItem("currentUser", username);
-        window.location.href = "home.html"; // or your main dashboard section
-    } else {
-        alert("Invalid username or password.");
-    }
+<script>
+function showSignup() {
+  document.getElementById('loginForm').classList.add('hidden');
+  document.getElementById('signupForm').classList.remove('hidden');
 }
-      </div>
-      <div id="suMsg" class="small"></div>
-    </div>
+
+function showLogin() {
+  document.getElementById('signupForm').classList.add('hidden');
+  document.getElementById('loginForm').classList.remove('hidden');
+}
+
+document.getElementById('signupBtn').addEventListener('click', function() {
+  const username = document.getElementById('suUser').value.trim();
+  const password = document.getElementById('suPass').value.trim();
+
+  if (!username || !password) {
+    alert("Please fill in both username and password");
+    return;
+  }
+
+  // Save locally
+  localStorage.setItem("user_" + username, password);
+  alert("Account created successfully! You can now log in.");
+  showLogin();
+});
+</script>
 
     <!-- LOGIN -->
     <div id="loginForm" class="hidden" style="margin-top:12px">
