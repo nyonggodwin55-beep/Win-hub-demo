@@ -69,9 +69,23 @@
     <div id="signupForm" class="hidden" style="margin-top:12px">
       <input id="suUser" placeholder="Create username">
       <input id="suPass" type="password" placeholder="Password">
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <button class="primary" onclick="doSignup()">Create account</button>
-        <button class="ghost" onclick="hideAuthForms()">Cancel</button>
+      <div sfunction loginUser() {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    if (!username || !password) {
+        alert("Please enter your username and password.");
+        return;
+    }
+
+    const storedUser = localStorage.getItem(username);
+    if (storedUser && JSON.parse(storedUser).password === password) {
+        localStorage.setItem("currentUser", username);
+        window.location.href = "home.html"; // or your main dashboard section
+    } else {
+        alert("Invalid username or password.");
+    }
+}
       </div>
       <div id="suMsg" class="small"></div>
     </div>
@@ -82,7 +96,7 @@
       <input id="liPass" type="password" placeholder="Password">
       <div style="display:flex;gap:8px;margin-top:10px">
         <button class="primary" onclick="doLogin()">Sign in</button>
-        <button class="ghost" onclick="hideAuthForms()">Cancel</button>
+        <button class="ghost" onclick="hideAuthForms()">Can
       </div>
       <div id="liMsg" class="small"></div>
     </div>
