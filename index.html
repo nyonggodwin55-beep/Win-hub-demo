@@ -89,30 +89,170 @@ document.getElementById('signupBtn').addEventListener('click', function() {
   const password = document.getElementById('suPass').value.trim();
 
   if (!username || !password) {
-    alert("Please fill in both username and password");
-    return;
-  }
+    alert("Please fill in both username and password"
+          <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PrimeVest INC</title>
+  <style>
+    body {
+      background-color: #000;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .hidden { display: none; }
+    input {
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      width: 80%;
+      border: 1px solid gold;
+      border-radius: 8px;
+      background: #111;
+      color: white;
+      font-size: 16px;
+    }
+    button {
+      background: gold;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 16px;
+      color: black;
+    }
+    button:hover {
+      background: #d4af37;
+    }
+    a {
+      color: gold;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .logout {
+      background: crimson;
+      color: white;
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 14px;
+      padding: 6px 12px;
+    }
+  </style>
+</head>
+<body>
 
-  // Save locally
-  localStorage.setItem("user_" + username, password);
-  alert("Account created successfully! You can now log in.");
-  showLogin();document.getElementById('loginForm').classList.add('hidden');
-document.getElementById('signupForm').classList.add('hidden');
-document.getElementById('mainPage').classList.remove('hidden');
-});
-</script>
-
-    <!-- LOGIN -->
-    <div id="loginForm" class="hidden" style="margin-top:12px">
-      <input id="liUser" placeholder="Username">
-      <input id="liPass" type="password" placeholder="Password">
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <button class="primary" onclick="doLogin()">Sign in</button>
-        <button class="ghost" onclick="hideAuthForms()">Can
-      </div>
-      <div id="liMsg" class="small"></div>
-    </div>
+  <!-- LOGIN FORM -->
+  <div id="loginForm">
+    <h2>Welcome to PrimeVest INC</h2>
+    <p>Login to continue</p>
+    <input id="loginUser" placeholder="Username">
+    <input id="loginPass" type="password" placeholder="Password">
+    <button id="loginBtn">Login</button>
+    <p>Don't have an account? <a href="#" onclick="showSignup()">Sign up</a></p>
   </div>
+
+  <!-- SIGNUP FORM -->
+  <div id="signupForm" class="hidden">
+    <h2>Create Account</h2>
+    <input id="suUser" placeholder="Create username">
+    <input id="suPass" type="password" placeholder="Create password">
+    <button id="signupBtn">Sign Up</button>
+    <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+  </div>
+
+  <!-- MAIN PAGE (HOME PAGE) -->
+  <div id="mainPage" class="hidden">
+    <button class="logout" onclick="logout()">Logout</button>
+    <h1>Welcome to PrimeVest INC</h1>
+    <p>Account Balance: <span id="userBalance">₦0.00</span></p>
+    <h3>Your Dashboard</h3>
+    <p>Explore shares, view transactions, and manage your investments.</p>
+    <!-- You can add your full investment layout below -->
+  </div>
+
+  <script>
+    function showSignup() {
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('signupForm').classList.remove('hidden');
+    }
+
+    function showLogin() {
+      document.getElementById('signupForm').classList.add('hidden');
+      document.getElementById('loginForm').classList.remove('hidden');
+    }
+
+    // SIGN UP FUNCTION
+    document.getElementById('signupBtn').addEventListener('click', function() {
+      const username = document.getElementById('suUser').value.trim();
+      const password = document.getElementById('suPass').value.trim();
+
+      if (!username || !password) {
+        alert("Please fill in both fields.");
+        return;
+      }
+
+      if (localStorage.getItem("user_" + username)) {
+        alert("Username already exists!");
+        return;
+      }
+
+      localStorage.setItem("user_" + username, password);
+      alert("Account created successfully! You can now login.");
+      showLogin();
+    });
+
+    // LOGIN FUNCTION
+    document.getElementById('loginBtn').addEventListener('click', function() {
+      const username = document.getElementById('loginUser').value.trim();
+      const password = document.getElementById('loginPass').value.trim();
+      const savedPass = localStorage.getItem("user_" + username);
+
+      if (!savedPass) {
+        alert("User not found!");
+        return;
+      }
+
+      if (password === savedPass) {
+        alert("Login successful!");
+        localStorage.setItem("loggedInUser", username);
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('signupForm').classList.add('hidden');
+        document.getElementById('mainPage').classList.remove('hidden');
+      } else {
+        alert("Incorrect password!");
+      }
+    });
+
+    // KEEP LOGGED IN
+    window.onload = function() {
+      const currentUser = localStorage.getItem("loggedInUser");
+      if (currentUser) {
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('signupForm').classList.add('hidden');
+        document.getElementById('mainPage').classList.remove('hidden');
+      }
+    };
+
+    // LOGOUT FUNCTION
+    function logout() {
+      localStorage.removeItem("loggedInUser");
+      document.getElementById('mainPage').classList.add('hidden');
+      document.getElementById('loginForm').classList.remove('hidden');
+      alert("Logged out successfully.");
+    }
+  </script>
+
+</body>
+</html>
 
   <!-- HOME -->
   <div id="homeCard" class="card hidden">
